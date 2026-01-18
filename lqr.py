@@ -96,5 +96,5 @@ for i, ax in enumerate(axs2.flatten()):
     ax.set_ylim(0, MAX_THRUST * 1.1)
     ax.grid(True)
 
-# plt.tight_layout()
+plt.tight_layout()
 plt.show()

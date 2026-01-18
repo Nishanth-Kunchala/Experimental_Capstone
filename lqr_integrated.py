@@ -307,4 +307,3 @@ while True:
     # 5. STEP
     p.stepSimulation()
     time.sleep(DT)
-    # Example
