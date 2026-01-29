@@ -1,5 +1,5 @@
 import omni
-
+from pxr import Gf
 # This script can be used to modify the position and orientation of the thrusters on the cubesat
 
 # Creating general vars
@@ -52,11 +52,6 @@ for name, pos, axis in Thruster:
 	# Setting Position and Orientation
 	Current_thruster.GetAttribute("xformOp:translate").Set(pos)
 	Current_thruster.GetAttribute("xformOp:rotateXYZ").Set(Gf.Vec3d(axis))
-
-# y positions
-ry = [-l, ly, l, -ly, 0, 0, l, ly, -l, -ly, 0, 0]
-
-# z positions
-rz = [lz, l, -lz, -l, Dc, -Dc, lz, -l, -lz, l, Dc, -Dc]
-
-print("Hi" + "/Hi")
+	
+    # Note that if the xforms do not rotate as expected, select one and toggle "Current Transformation Space:Local" by selecting the
+	# Earth Icon
