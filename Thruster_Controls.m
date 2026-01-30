@@ -108,20 +108,29 @@ sys_Cube = ss(Acl,0.*B,C,D); % sys_Cube(i,j) is ith output (ex x position) and j
 % function)
 % Setting a position deviations (in y)
 x0 = zeros(12,1);
+
+% Positions
+x0(1) = 1;
 x0(2) = 0.5;
-t = 10;
+x0(3) = -0.5;
+
+% Velocity
+x0(7) = 0.75;
+x0(8) = -0.75;
+x0(9) = 0.75;
+
+t = 1000;
 
 % Int_Sim(sys_Cube,x0,t,K);
 
 % set(h(i),'Visible','off')
 
 %% Analyzing Response w/ custom thruster code
+% This uses the current iteration of PWPF with LQR, outputs
+% constant positive u values in sinlge pulses at for each thruster
 
 fx0(8) = 0.2; % adding angular displacement
 
 [xTR,uTR,dxdtTR,tTR] = Thruster_Sim(A,B,K,t,x0); % Current custom thruster code
-
-%[xTR,uTR,tTR] = Thruster_Sim2(A,B,K,t,x0); 
-
 
 [h3,h4] = Control_Plot(xTR,uTR,tTR);

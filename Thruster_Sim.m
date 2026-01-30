@@ -22,14 +22,14 @@ x(:,1) = x0;
 % Calculateing f_t and uM
 f_t = max(-K*x(:,1),0);
 uM = zeros(12,1);
-p = zeros(12,1);
+p = 0; %zeros(12,1);
 % Marching 
 
 for i = 1:nodes-1
 
     % Calculating u from lqr then modifying using PWPF function
     u_input = max(-K*x(:,i),0);
-    u(:,i) = PWPF(u_input,dt);
+    u(:,i) = PWPF_Cycle(u_input,dt);
 
     % Calculating dxdt and marching
     dxdt(:,i) = A*x(:,i) + B*u(:,i);
@@ -42,11 +42,6 @@ for i = 1:nodes-1
 
     x(:,i+1) = x(:,i) + (dt/6)*(k1 + 2*k2 + 2*k3 + k4);
 
-  %  x(:,i+1) = x(:,i) + dxdt(:,i)*dt;
-
 end
-
-%u(:,nodes) = PWPF(-K*x(:,nodes),dt);
-%dxdt(:,nodes) = A*x(:,nodes) + B*u(:,nodes);
 
 end

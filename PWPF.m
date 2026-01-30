@@ -8,12 +8,11 @@ K = 4;
 T = 0.1;
 u_on = 0.7;
 u_off = 0.4;
-ubar = 1;
+ubar = 25;
 
 l_p = 0.010; % Pulse duration
 
 f_tnp1 = ((u_lqr - uM)./T).*(K*dt) + f_t.*(1 - dt/T);
-%f_tnp1 = f_t + dt*(K/T.*(u_lqr - uM) - f_t./T);
 
  for i = 1:length(uM)
 
@@ -22,7 +21,7 @@ f_tnp1 = ((u_lqr - uM)./T).*(K*dt) + f_t.*(1 - dt/T);
 
      if p(i) > 0 
 
-         p(i) = p(i) -1;
+         p(i) = p(i) - 1;
          uM(i) = 0;
 
      elseif abs(f_tnp1(i)) > u_on
