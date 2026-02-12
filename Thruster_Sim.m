@@ -23,12 +23,10 @@ x(:,1) = x0;
 % Initialize f_t, p, and uM
 f_t = max(-K*x(:,1),0);
 uM = zeros(12,1);   
-p = zeros(12,1); %0; %zeros(12,1);   
+p = zeros(12,1);  
 
 % Marching 
 i = 0;
-j = 0;
-
 
 while (sum(abs(dxdt)) > 0.1) && (i < nodes)
 
@@ -55,18 +53,6 @@ while (sum(abs(dxdt)) > 0.1) && (i < nodes)
     k4 = A*(x(:,i) + dt*k3) + B*u(:,i);
 
     x(:,i+1) = x(:,i) + (dt/6)*(k1 + 2*k2 + 2*k3 + k4);
-
-   %  j = j+1;
-   % 
-   % if j == 50
-   % 
-   %     j = 0;
-   %     u_input
-   %     u(:,i)
-   %     x(:,i)
-   % 
-   % 
-   % end
 
 end
 

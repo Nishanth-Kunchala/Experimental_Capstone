@@ -43,7 +43,7 @@ for i = 1:length(xw)
 
                 for g = 1:length(Rs)
 
-                    itr = itr + 1
+                    itr = itr + 1;
                     itr_param(itr,5:9) = [xw(i),vw(j),thetaw(p),ww(q),Rs(g)];
 
                     [A,B,K] = CubeSat_12T(xw(i),vw(j),thetaw(p),ww(q),Rs(g));
