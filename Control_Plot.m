@@ -1,7 +1,7 @@
 function [h1,h2] = Control_Plot(X_states,u_inputs,t_states)
 % This function generates position and thruster input plots over time using
 % the state and input matricies and time vector
-
+global ubar l_p
 % Plotting states
 figure()
 
@@ -38,5 +38,20 @@ for j = 1:size(u_inputs,1)
 end
 
 hold off
+
+% Plotting thruster data
+figure()
+
+% Caclulating and plotting the total specific impulse exerted by the
+% cubesat
+dt = t_states(2) - t_states(1);
+
+tot_Isp = cumsum(sum(u_inputs))*dt;
+
+plot(t_states,tot_Isp)
+
+title("Total ISP Exerted by the Cubesat")
+xlabel("Time in Seconds")
+ylabel("Total ISP in Newton-Seconds")
 
 end

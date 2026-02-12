@@ -36,17 +36,18 @@ for i = 1:length(f)
 
 end
 
-% Thruster ouput
-global ubar
+% Thruster parameters
+global ubar l_p
 
-ubar = 0.1;
+ubar = 1; % Pulse amplitude in Newtons
+l_p = 0.010; % Pulse duration
 
 % State Space xdot = Ax + Bu
 % Geometric Variables
-m = 2; % mass in kg
-Ixx = 1.2;
-Iyy = 1.2;
-Izz = 1.2;
+m = 1.35; % mass in kg
+Ixx = (1/12)*((0.1)^2 - (0.05)^2);
+Iyy = Ixx;
+Izz = Ixx;
 
 Im = [Ixx; Iyy; Izz];
 
@@ -74,9 +75,9 @@ ww = 10;
 Q = diag([Xw, Xw, Xw, Vw, Vw, Vw, thetaw, thetaw, thetaw, ww, ww, ww]);
 
 % R is the control effort scalar, deciding how much fuel the control system
-% should try and conserve. larger = conervative adjustments, smaller
+% should try and conserve. larger = conservative adjustments, smaller
 %  = more agressive adjustments. Setting each thruster equal.
-weight = 0.1;
+weight = 10;
 R = weight*eye(length(f));
 
 % N is the cross term coupling state and inputs, set to zero for
@@ -100,12 +101,6 @@ Acl = A - B*K;
 C = eye(size(A));
 D = zeros(size(C,1),size(B,2));
 
-sys_Cube = ss(Acl,0.*B,C,D); % sys_Cube(i,j) is ith output (ex x position) and jth input (ex thruster 1)
-
-%% Analyzing Response using closed-loop deviations
-% This can simulate the cubsat but does not restrict u to only positive
-% values, so it can actuate in both + and - directions (using Initial
-% function)
 % Setting a position deviations (in y)
 x0 = zeros(12,1);
 
@@ -114,23 +109,20 @@ x0(1) = 1;
 x0(2) = 0.5;
 x0(3) = -0.5;
 
-% Velocity
+% Angles
 x0(7) = 0.75;
 x0(8) = -0.75;
 x0(9) = 0.75;
 
 t = 1000;
 
-% Int_Sim(sys_Cube,x0,t,K);
-
-% set(h(i),'Visible','off')
-
 %% Analyzing Response w/ custom thruster code
 % This uses the current iteration of PWPF with LQR, outputs
 % constant positive u values in sinlge pulses at for each thruster
 
-fx0(8) = 0.2; % adding angular displacement
-
-[xTR,uTR,dxdtTR,tTR] = Thruster_Sim(A,B,K,t,x0); % Current custom thruster code
+[xTR,uTR,tTR] = Thruster_Sim(A,B,K,t,x0); % Current custom thruster code
 
 [h3,h4] = Control_Plot(xTR,uTR,tTR);
+
+[ISP, Xac, theta_ac] = Thruster_Data(uTR,xTR,tTR);
+
