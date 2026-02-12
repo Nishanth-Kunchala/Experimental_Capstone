@@ -11,7 +11,7 @@ xw = [1, 10, 100, 1000, 10000];
 vw = [1, 10, 100, 1000, 10000];
 thetaw = [1, 10, 100, 1000, 10000];
 ww = [1, 10, 100, 1000, 10000];
-Rs = [0.01, 0.1, 1, 10, 100, 1000, 10000];
+Rs = [0.01, 0.1, 1, 10, 100, 1000];
 
 % Sim Parameters
 tmax = 1000;
@@ -43,7 +43,7 @@ for i = 1:length(xw)
 
                 for g = 1:length(Rs)
 
-                    itr = itr + 1;
+                    itr = itr + 1
                     itr_param(itr,5:9) = [xw(i),vw(j),thetaw(p),ww(q),Rs(g)];
 
                     [A,B,K] = CubeSat_12T(xw(i),vw(j),thetaw(p),ww(q),Rs(g));

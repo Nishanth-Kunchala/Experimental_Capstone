@@ -28,7 +28,7 @@ p = zeros(12,1);
 % Marching 
 i = 0;
 
-while (sum(abs(dxdt)) > 0.1) && (i < nodes)
+while (((sum(abs(dxdt)) > 0.1) && (i < nodes)) || (i < 10))
 
     i = i+1;
 
