@@ -13,6 +13,11 @@ thetaw = [1, 10, 100, 1000];
 ww = [1, 10, 100, 1000];
 Rs = [0.01, 0.1, 1, 10, 100, 1000];
 
+% Organizing into grids
+
+[xw_grid, vw_grid, thetaw_grid, ww_grid, Rs_grid] = ndgrid(xw,vw,thetaw,ww,Rs);
+
+%%
 % Sim Parameters
 tmax = 1000;
 x0 = zeros(12,1);
@@ -20,6 +25,11 @@ x0 = zeros(12,1);
 itr = 0;
 itr_tot = length(xw)*length(vw)*length(thetaw)*length(ww)*length(Rs);
 itr_param = zeros(itr_tot,9);
+
+% Loop procees tracking
+q = parallel.pool.DataQueue;
+afterEach(q,@(i) fprintf("\b\b\b\b\b\b\b\b%6.2f%%\n",i));
+fprintf("Processing: %6.2f%%\n",0)
 
 % Positions
 x0(1) = 1;
@@ -33,33 +43,28 @@ x0(9) = 0.75;
 
 
 
-for i = 1:length(xw)
+parfor i = 1:itr_tot
+    
+    [A,B,K] = CubeSat_12T(xw_grid(i),vw_grid(i),thetaw_grid(i),ww_grid(i),Rs_grid(i));
+    [Xc, Uc, Tc] = Thruster_Sim(A,B,K,tmax,x0);
 
-    for j = 1:length(vw)
+    [Isp,X_ac,theta_ac] = Thruster_Data(Uc,Xc,Tc);
+    itr_param(i,:) = [Isp,X_ac,theta_ac,floor(max(Tc)/tmax),xw_grid(i),vw_grid(i),thetaw_grid(i),ww_grid(i),Rs_grid(i)];
 
-        for p = 1:length(thetaw)
-
-            for q = 1:length(ww)
-
-                for g = 1:length(Rs)
-
-                    itr = itr + 1
-                    itr_param(itr,5:9) = [xw(i),vw(j),thetaw(p),ww(q),Rs(g)];
-
-                    [A,B,K] = CubeSat_12T(xw(i),vw(j),thetaw(p),ww(q),Rs(g));
-                    [Xc, Uc, Tc] = Thruster_Sim(A,B,K,tmax,x0);
-
-                    [Isp,X_ac,theta_ac] = Thruster_Data(Uc,Xc,Tc);
-                    itr_param(itr,1:4) = [Isp,X_ac,theta_ac,floor(max(Tc)/tmax)];
-
-                end
-
-            end
-        end
-    end
+    send(q,((itr_tot + 1 - i)/(itr_tot))*100)
 
 end
 
     data = array2table(itr_param,'VariableNames',{'Total ISP','x_ac','theta_ac','Convergence','xw','vw','thetaw','ww','R'});
     writetable(data,'Tuning.xls')
                     
+    %%
+fprintf("Processing: %6.2f%%\n",0)
+
+    %%
+
+fprintf("\b\b\b\b\b\b\b\b%6.2f%%\n",5)
+
+fprintf("\b\b\b\b\b\b\b\b%6.2f%%\n",10)
+
+fprintf("\b\b\b\b\b\b\b\b%6.2f%%\n",10)
