@@ -3,6 +3,7 @@
 % Requires Controlls Toolbox to run. Should also download parallel
 % processing Toolbox to utilize multiple processors
 
+% Try Bryce's Rule for initial parameters and gradient descent for tuning
 clear all
 close all
 clc
@@ -48,7 +49,7 @@ x0(9) = 0.75;
 
 
 % Using parfor to analyze parameters using multiple processing cores
-
+tic
 parfor i = 1:itr_tot
     
     % Gathering CubeSat parameters, Calculating dynamics and performance
@@ -62,6 +63,8 @@ parfor i = 1:itr_tot
     send(q,1)
 
 end
+
+Simulation_Duration = toc
 
 % Store Data in Excel
 data = array2table(itr_param,'VariableNames',{'Total ISP','x_ac','theta_ac','Convergence','xw','vw','thetaw','ww','R'});
