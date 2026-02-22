@@ -3,24 +3,39 @@
 % Requires Controlls Toolbox to run. Should also download parallel
 % processing Toolbox to utilize multiple processors
 
-% Try Bryce's Rule for initial parameters and gradient descent for tuning
-clear all
+% gradient descent for tuning
+clear
 close all
 clc
 
+% Setting Thruster output 
+
+ubar = 25/1000;
+dt = 1e-3;
+
+% Using Bryson's Rule for initial parameters
+% xw = 1/(dx)^2 where dx is maximum state difference from goal
+% R = 1/umax^2 where umax is the maximum thruster force
+dx = 0.1;
+du = 0.1;
+
+x_b = 1/(dx^2);
+u_b = 1/(du^2);
+R_b = 1/(ubar^2);
+
 % Tuned Variables
 % LQR Vars
-xw = [1, 10, 100, 1000];
-vw = [1, 10, 100, 1000];
-thetaw = [1, 10, 100, 1000];
-ww = [1, 10, 100, 1000];
-Rs = [0.01, 0.1, 1, 10, 100, 1000];
+xw = [0.1, 1, 10].*x_b;
+vw = [0.1, 1, 10].*u_b;
+thetaw = [0.1, 1, 10].*x_b;
+ww = [0.1, 1, 10].*u_b;
+Rs = [0.1, 1, 10].*R_b;
 
 % Organizing into grids
 [xw_grid, vw_grid, thetaw_grid, ww_grid, Rs_grid] = ndgrid(xw,vw,thetaw,ww,Rs);
 
 % Sim Parameters
-tmax = 1000;
+tmax = 350;
 x0 = zeros(12,1);
 
 itr = 1;
@@ -47,28 +62,30 @@ x0(7) = 0.75;
 x0(8) = -0.75;
 x0(9) = 0.75;
 
+sheet = "Run_" + num2str(length(sheetnames("Tuning.xls")) + 1);
 
 % Using parfor to analyze parameters using multiple processing cores
 tic
 parfor i = 1:itr_tot
     
     % Gathering CubeSat parameters, Calculating dynamics and performance
-    [A,B,K] = CubeSat_12T(xw_grid(i),vw_grid(i),thetaw_grid(i),ww_grid(i),Rs_grid(i));
-    [Xc, Uc, Tc] = Thruster_Sim(A,B,K,tmax,x0);
+    [A,B,K] = CubeSat_12T(xw_grid(i),vw_grid(i),thetaw_grid(i),ww_grid(i),dt,Rs_grid(i));
+
+    [Xc, Uc, Tc] = Thruster_Sim(A,B,K,ubar,tmax,dt,x0);
 
     [Isp,X_ac,theta_ac] = Thruster_Data(Uc,Xc,Tc);
-    itr_param(i,:) = [Isp,X_ac,theta_ac,floor(max(Tc)/tmax),xw_grid(i),vw_grid(i),thetaw_grid(i),ww_grid(i),Rs_grid(i)];
+    itr_param(i,:) = [Isp,X_ac,theta_ac,(1-floor(max(Tc)/tmax)),xw_grid(i),vw_grid(i),thetaw_grid(i),ww_grid(i),Rs_grid(i)];
 
     % Updating Progress tracker
     send(q,1)
 
 end
 
-Simulation_Duration = toc
+Simulation_Duration = toc/3600
 
 % Store Data in Excel
 data = array2table(itr_param,'VariableNames',{'Total ISP','x_ac','theta_ac','Convergence','xw','vw','thetaw','ww','R'});
-writetable(data,'Tuning.xls')             
+writetable(data,'Tuning.xls','Sheet', sheet)             
 
 % Function used to update progress tracker
 function Progress_Update(itr_tot,lp)

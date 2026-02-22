@@ -1,4 +1,4 @@
-function [A,B,K] = CubeSat_12T(xw,vw,thetaw,ww,Rs)
+function [Ad,Bd,K] = CubeSat_12T(xw,vw,thetaw,ww,dt,Rs)
 % This function contains the parameters for the current 12-thruster CubeSat
 % Configuration, and outputs the neccesary control scheme inforation for
 % LQR-PWPF controls
@@ -18,13 +18,9 @@ l = 0.08; % m (0.8 U) the side distances (not full U)
 Dc = 0.05; % m (0.5 U) the distance between center thrusters
 
 % Defining Thruster performace
-global ubar l_p
-
-ubar = 1; % Thrust in Newtons
-l_p = 0.010; % Pulse duration 
-
 f = [0 0 -1; 0 -1 0; 0 0 1; 0 1 0; -1 0 0; -1 0 0; 0 0 -1; 0 -1 0; 0 0 1; 0 1 0; 1 0 0; 1 0 0]';
 r = zeros(3,12);
+
 % x positions
 r(1,1:6) = lx/2;
 r(1,7:12) = -lx/2;
@@ -64,11 +60,16 @@ B = zeros(12);
 B(4:6,:) = (1/m).*G(1:3,:);
 B(10:12,:) = (1./Im).*G(4:6,:);
 
+% Converting to discrete domain
+sys = ss(A,B,[],[]);
+sysd = c2d(sys,dt);
+[Ad, Bd] = ssdata(sysd);
+
 % LQR Parameters
 Q = diag([xw, xw, xw, vw, vw, vw, thetaw, thetaw, thetaw, ww, ww, ww]);
 R = Rs*eye(length(f));
 N = zeros(length(f));
 
-[K, ~, ~] = lqr(A,B,Q,R,N);
+[K, ~, ~] = lqrd(Ad,Bd,Q,R,N);
 
 end

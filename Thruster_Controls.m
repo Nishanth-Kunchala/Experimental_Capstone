@@ -37,15 +37,14 @@ for i = 1:length(f)
 end
 
 % Thruster parameters
-global ubar l_p
+ubar = 25/1000; % Pulse amplitude in Newtons
 
-ubar = 1; % Pulse amplitude in Newtons
-l_p = 0.010; % Pulse duration
+dt = 1e-2; % Time step
 
 % State Space xdot = Ax + Bu
 % Geometric Variables
 m = 1.35; % mass in kg
-Ixx = (1/12)*((0.1)^2 - (0.05)^2);
+Ixx = (m/6)*((0.1)^2 - (0.02)^2);
 Iyy = Ixx;
 Izz = Ixx;
 
@@ -68,16 +67,19 @@ B(10:12,:) = (1./Im).*G(4:6,:);
 % Q is the state penalty matrix, weights which states are more important to
 % stabelize. Prioritizing Pozition = orientation > velocity = angular
 % velocity
-Xw = 1000;
-Vw = 10;
-thetaw = 1000;
-ww = 10;
+dx = 0.01;
+du = 0.01;
+
+Xw = 1/(dx^2);
+Vw =  1/(du^2);
+thetaw =  1/(dx^2);
+ww = 1/(du^2);
 Q = diag([Xw, Xw, Xw, Vw, Vw, Vw, thetaw, thetaw, thetaw, ww, ww, ww]);
 
 % R is the control effort scalar, deciding how much fuel the control system
 % should try and conserve. larger = conservative adjustments, smaller
 %  = more agressive adjustments. Setting each thruster equal.
-weight = 10;
+weight = 1/(ubar^2);
 R = weight*eye(length(f));
 
 % N is the cross term coupling state and inputs, set to zero for
@@ -87,7 +89,12 @@ N = zeros(length(f));
 % Calling LQR function to attain the ideal feedback gain matrix (K),
 % solution to the Riccati equation (S), and eigenvalues (P)
 
-[K, S, P] = lqr(A,B,Q,R,N);
+% Converting system into a discrete LQR
+sys = ss(A,B, [], []);
+sysd = c2d(sys,dt);
+[Ad, Bd] = ssdata(sysd);
+
+[K, S, P] = dlqr(Ad,Bd,Q,R,N);
 
 % System responce
 
@@ -120,7 +127,7 @@ t = 1000;
 % This uses the current iteration of PWPF with LQR, outputs
 % constant positive u values in sinlge pulses at for each thruster
 
-[xTR,uTR,tTR] = Thruster_Sim(A,B,K,t,x0); % Current custom thruster code
+[xTR,uTR,tTR] = Thruster_Sim(Ad,Bd,K,ubar,t,dt,x0); % Current custom thruster code
 
 [h3,h4] = Control_Plot(xTR,uTR,tTR);
 
