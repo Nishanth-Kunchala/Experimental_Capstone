@@ -28,9 +28,9 @@ i = 0;
 % (((sum(abs((x(:,i+1)-x(:,i))/dt)))
 
 % Convergence criteria
-x_ac = 4e-3; % 5 mm displacement
+x_ac = 5e-3; % 5 mm displacement
 v_ac = 1e-3; % 1 mm/s velocity
-theta_ac = 1.75*(pi()/180); % 5 degrees angle
+theta_ac = 5*(pi()/180); % 5 degrees angle
 w_ac = 1*(pi()/180); % 1 degree/s rotation
 
 

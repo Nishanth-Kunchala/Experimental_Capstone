@@ -16,25 +16,32 @@ dt = 1e-2;
 % xw = 1/(dx)^2 where dx is maximum state difference from goal
 % R = 1/umax^2 where umax is the maximum thruster force
 
-x_w = 10000;
-v_w = 10000;
+x_w = 100000;
+v_w = 1000000;
 theta_w = 10000;
-w_w = 10000;
-R_w = 16;
+w_w = 505;
+R_w = 0.41;
 
 % Tuned Variables
 % LQR Vars
-xw = [0.001 0.01, 0.1, 1, 10, 100 1000].*x_w;
-vw = [0.001 0.01, 0.1, 1, 10, 100 1000].*v_w;
-thetaw = [0.001 0.01, 0.1, 1, 10, 100 1000].*theta_w;
-ww = [0.001 0.01, 0.1, 1, 10, 100 1000].*w_w;
-Rs = [0.001 0.01, 0.1, 1, 10, 100 1000].*R_w;
+xw = linspace(0.1,1,5).*x_w;
+vw = linspace(0.1,1,5).*v_w;
+thetaw = linspace(0.1,1,5).*theta_w;
+ww = linspace(0.1,1,5).*w_w;
+Rs = linspace(0.1,1,5).*R_w;
+
+% xw = [0.01, 0.1, 1, 10, 100].*x_w;
+% vw = [0.01, 0.1, 1, 10, 100].*v_w;
+% thetaw = [0.01, 0.1, 1, 10, 100].*theta_w;
+% ww = [0.01, 0.1, 1, 10, 100].*w_w;
+% Rs = [0.01, 0.1, 1, 10, 100].*R_w;
+
 
 % Organizing into grids
 [xw_grid, vw_grid, thetaw_grid, ww_grid, Rs_grid] = ndgrid(xw,vw,thetaw,ww,Rs);
 
 % Sim Parameters
-tmax = 120;
+tmax = 180;
 x0 = zeros(12,1);
 
 itr = 1;
