@@ -25,8 +25,16 @@ uM = zeros(12,1);
 i = 0;
 % abs((x(:,i+1)-x(:,i))/dt)
 % (sum(abs(x(4:6,i+1))) + sum(abs(x(10:12,i+1))))
+% (((sum(abs((x(:,i+1)-x(:,i))/dt)))
 
-while ((i < 10) || (((sum(abs((x(:,i+1)-x(:,i))/dt))) > 0.05) && (i < nodes)))
+% Convergence criteria
+x_ac = 4e-3; % 5 mm displacement
+v_ac = 1e-3; % 1 mm/s velocity
+theta_ac = 1.75*(pi()/180); % 5 degrees angle
+w_ac = 1*(pi()/180); % 1 degree/s rotation
+
+
+while (any(abs(x(1:3,i+1)) > x_ac) || any(abs(x(4:6,i+1)) > v_ac) || any(abs(x(7:9,i+1)) > theta_ac) || any(abs(x(10:12,i+1)) > w_ac)) && (i < (nodes-1))
 
     i = i+1;
 
@@ -46,8 +54,8 @@ while ((i < 10) || (((sum(abs((x(:,i+1)-x(:,i))/dt))) > 0.05) && (i < nodes)))
 
 end
 
-x_s = x(:,1:i);
-u_s = u(:,1:i);
-t_s = t_vector(1,1:i);
+x_s = x(:,1:i+1);
+u_s = u(:,1:i+1);
+t_s = t_vector(1,1:i+1);
 
 end

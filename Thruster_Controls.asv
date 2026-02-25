@@ -70,22 +70,16 @@ B(10:12,:) = (1./Im).*G(4:6,:);
 dx = 0.01;
 du = 0.01;
 
-Xw = 10000; %1/(dx^2);
-Vw = 100000; %1/(du^2);
-thetaw = 1000; %1/(dx^2);
-ww = 100; %1/(du^2);
+Xw = 100000; %1/(dx^2);
+Vw = 1000000; %1/(du^2);
+thetaw = 1000000; %1/(dx^2);
+ww = 100000; %1/(du^2);
 Q = diag([Xw, Xw, Xw, Vw, Vw, Vw, thetaw, thetaw, thetaw, ww, ww, ww]);
-
-% Xw = 100000; %1/(dx^2);
-% Vw = 1000000; %1/(du^2);
-% thetaw = 1000000; %1/(dx^2);
-% ww = 100000; %1/(du^2);
-% Q = diag([Xw, Xw, Xw, Vw, Vw, Vw, thetaw, thetaw, thetaw, ww, ww, ww]);
 
 % R is the control effort scalar, deciding how much fuel the control system
 % should try and conserve. larger = conservative adjustments, smaller
 %  = more agressive adjustments. Setting each thruster equal.
-weight = 0.16; %1/(ubar^2);
+weight = 16; %1/(ubar^2);
 R = weight*eye(length(f));
 
 % N is the cross term coupling state and inputs, set to zero for

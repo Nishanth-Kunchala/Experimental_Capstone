@@ -4,38 +4,37 @@
 % processing Toolbox to utilize multiple processors
 
 % gradient descent for tuning
-clear
+clear all
 close all
 clc
-
 % Setting Thruster output 
 
 ubar = 25/1000;
-dt = 1e-3;
+dt = 1e-2;
 
 % Using Bryson's Rule for initial parameters
 % xw = 1/(dx)^2 where dx is maximum state difference from goal
 % R = 1/umax^2 where umax is the maximum thruster force
-dx = 0.1;
-du = 0.1;
 
-x_b = 1/(dx^2);
-u_b = 1/(du^2);
-R_b = 1/(ubar^2);
+x_w = 10000;
+v_w = 10000;
+theta_w = 10000;
+w_w = 10000;
+R_w = 16;
 
 % Tuned Variables
 % LQR Vars
-xw = [0.1, 1, 10].*x_b;
-vw = [0.1, 1, 10].*u_b;
-thetaw = [0.1, 1, 10].*x_b;
-ww = [0.1, 1, 10].*u_b;
-Rs = [0.1, 1, 10].*R_b;
+xw = [0.001 0.01, 0.1, 1, 10, 100 1000].*x_w;
+vw = [0.001 0.01, 0.1, 1, 10, 100 1000].*v_w;
+thetaw = [0.001 0.01, 0.1, 1, 10, 100 1000].*theta_w;
+ww = [0.001 0.01, 0.1, 1, 10, 100 1000].*w_w;
+Rs = [0.001 0.01, 0.1, 1, 10, 100 1000].*R_w;
 
 % Organizing into grids
 [xw_grid, vw_grid, thetaw_grid, ww_grid, Rs_grid] = ndgrid(xw,vw,thetaw,ww,Rs);
 
 % Sim Parameters
-tmax = 350;
+tmax = 120;
 x0 = zeros(12,1);
 
 itr = 1;
@@ -74,17 +73,17 @@ parfor i = 1:itr_tot
     [Xc, Uc, Tc] = Thruster_Sim(A,B,K,ubar,tmax,dt,x0);
 
     [Isp,X_ac,theta_ac] = Thruster_Data(Uc,Xc,Tc);
-    itr_param(i,:) = [Isp,X_ac,theta_ac,(1-floor(max(Tc)/tmax)),xw_grid(i),vw_grid(i),thetaw_grid(i),ww_grid(i),Rs_grid(i)];
+    itr_param(i,:) = [Isp,X_ac,theta_ac,max(Tc),xw_grid(i),vw_grid(i),thetaw_grid(i),ww_grid(i),Rs_grid(i)];
 
     % Updating Progress tracker
     send(q,1)
 
 end
-
+%%
 Simulation_Duration = toc/3600
 
 % Store Data in Excel
-data = array2table(itr_param,'VariableNames',{'Total ISP','x_ac','theta_ac','Convergence','xw','vw','thetaw','ww','R'});
+data = array2table(itr_param,'VariableNames',{'Total ISP','x_ac','theta_ac','Convergence Speed','xw','vw','thetaw','ww','R'});
 writetable(data,'Tuning.xls','Sheet', sheet)             
 
 % Function used to update progress tracker

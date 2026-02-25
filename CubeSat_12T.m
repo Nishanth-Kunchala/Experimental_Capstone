@@ -44,7 +44,7 @@ end
 % State Space xdot = Ax + Bu
 % Geometric Variables
 m = 1.35; % mass in kg
-Ixx = (1/12)*((0.1)^2 - (0.05)^2);
+Ixx = (m/6)*((0.1)^2 - (0.02)^2);
 Iyy = Ixx;
 Izz = Ixx;
 
@@ -68,8 +68,7 @@ sysd = c2d(sys,dt);
 % LQR Parameters
 Q = diag([xw, xw, xw, vw, vw, vw, thetaw, thetaw, thetaw, ww, ww, ww]);
 R = Rs*eye(length(f));
-N = zeros(length(f));
 
-[K, ~, ~] = lqrd(Ad,Bd,Q,R,N);
+[K, ~, ~] = dlqr(Ad,Bd,Q,R);
 
 end
