@@ -1,9 +1,8 @@
-function [tot_Isp, X_ac, theta_ac] = Thruster_Data(u_inputs,x_states,t_states)
+function [tot_Isp, X_ac, theta_ac] = Thruster_Data(u_inputs,x_states,dt)
 % This function uses simulation data to produces various relavent data
 
 [~, itr] = size(x_states);
 % Caclulating the total specific impulse exerted by the cubesat
-dt = t_states(2) - t_states(1);
 
 tot_Isp = sum(sum(u_inputs))*dt;
 

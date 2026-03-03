@@ -15,9 +15,9 @@ dx = 0.01;
 du = 0.01;
 
 Xw = 10000; %1/(dx^2);
-Vw = 325000; %1/(du^2);
-thetaw = 3250; %1/(dx^2);
-ww = 505; %1/(du^2);
+Vw = 100000; %1/(du^2);
+thetaw = 1000; %1/(dx^2);
+ww = 100; %1/(du^2);
 
 % Xw = 10000; %1/(dx^2);
 % Vw = 100000; %1/(du^2);
@@ -28,7 +28,7 @@ ww = 505; %1/(du^2);
 % should try and conserve. larger = conservative adjustments, smaller
 %  = more agressive adjustments. Setting each thruster equal.
 % weight = 0.16; %1/(ubar^2);
-R = 0.41; %1/(ubar^2);
+R = 0.16; %1/(ubar^2);
 
 % Calling CubeSat Function
 [A, B, K] = CubeSat_12T(Xw,Vw,thetaw,ww,dt,R);
@@ -38,14 +38,14 @@ R = 0.41; %1/(ubar^2);
 x0 = zeros(12,1);
 
 % Positions
-x0(1) = 1;
-x0(2) = 0.5;
-x0(3) = -0.5;
+x0(1) = 2;
+%x0(2) = 0.5;
+%x0(3) = -0.5;
 
 % Angles
-x0(7) = 0.75;
-x0(8) = -0.75;
-x0(9) = 0.75;
+%x0(7) = 0.75;
+%x0(8) = -0.75;
+%x0(9) = 0.75;
 
 t = 1000;
 
@@ -57,6 +57,6 @@ t = 1000;
 
 [h3,h4] = Control_Plot(xTR,uTR,tTR);
 
-[ISP, Xac, theta_ac] = Thruster_Data(uTR,xTR,tTR);
+[ISP, Xac, theta_ac] = Thruster_Data(uTR,xTR,dt);
 
     
