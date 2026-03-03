@@ -2,6 +2,7 @@ import omni
 import carb
 import numpy as np
 from pxr import Gf, UsdPhysics, UsdGeom, PhysicsSchemaTools
+
 #from omni.physx.scripts import physicsUtils
 # Cubesat class
 class CubeSatController:
@@ -43,8 +44,8 @@ class CubeSatController:
 		# Name, Location, Rotation Axis, Rotation Magnitude
 		self.Thruster = [
 
-		    ("T1", (self.lx, self.ly, self.lz), (0,0,0)),
-		    ("T2", (self.lx, -self.l, self.l),  (-90,0,0)),
+		    ("T1", (self.lx, -self.l, self.lz), (0,0,0)),
+		    ("T2", (self.lx, self.ly, self.l),  (-90,0,0)),
 		    ("T3", (self.lx, self.l, -self.lz),  (-180,0,0)),
 		    ("T4", (self.lx, -self.ly, -self.l),  (90,0,0)),
 
@@ -81,7 +82,7 @@ class CubeSatController:
 		
 		#sim_physx = omni.physx.bindings._physx.IPhysxSimulation
 		sim_physx = omni.physx.get_physx_simulation_interface()
-		local_cord = Gf.Vec3d(0,0,1)
+		local_cord = Gf.Vec3d(0,0,-1)
 		
 		stage_id = PhysicsSchemaTools.sdfPathToInt(self.Cube_path)
 		
@@ -106,11 +107,9 @@ class CubeSatController:
 			world_cord.Normalize()
 			
 			pos = transform_matrix.ExtractTranslation()
-			#pos_float3 = carb.Float3(pos[0],pos[1],pos[2])
 			
 			# Computing the force vector
 			Thruster_force = world_cord*self.Thrust
-			#Thruster_force_float3 = carb.Float3(Thruster_force[0], Thruster_force[1], Thruster_force[2])
 			
 			sim_physx.apply_force_at_pos(
 			self.stage_id,
@@ -127,33 +126,46 @@ class SimulationManager:
 		self.controller_dt = 0.01
 		self.actuator_step = 0.0
 		self.cmd = np.zeros(12)
+		
+		self.physx = omni.physx.acquire_physx_interface()
+		self.sub = None
 	
-	# Continuous apply controller inputs
+	# Function that is called each physics time step, add controller here
 	def sim_step(self,dt):
 		
-		self.cmd = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1]
+		# Controller logic goes here. Use the controller_dt and actuator_step to
+		# reprsent the frequency that the controller updates at
+		
 		self.sim.apply_thrust(self.cmd)
 	
-	# Starts the simulation
-#	def start_sim(self):
-#		sim_physx = omni.physx.acquire_physx_interface()
-#		self.subscribe = sim_physx.subscribe_physics_step_events(self.sim_step)
+	# Starts the controller simulation
+	def start_sim(self):
+		
+		if self.sub is None:
+			
+			self.cmd = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,1]
+			self.sub = self.physx.subscribe_physics_step_events(self.sim_step)
+			
 	
-Cube_main = SimulationManager()
+	# Stops the controller simulation
+	def stop_sim(self):
+		
+		if self.sub is not None:
+			self.sub.unsubscribe()
+			self.sub = None
+			self.cmd = np.zeros(12)
+			
+	
 
-sim_physx = omni.physx.acquire_physx_interface()
-#subscribe = sim_physx.subscribe_physics_step_events(Cube_main.sim_step)
-#subscribe.unsubscribe()
+# Check whether there is already a Cube_main Object
 
-#sim = CubeSatController()
-#cmd = [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0]
-#sim.apply_thrust(cmd)
+if "Cube_main" not in globals():
+	
+	print("Generating Cube_main Object")
+	Cube_main = SimulationManager()
 
-
-
-
-
-
+#Cube_main.start_sim()
+#Cube_main.stop_sim()
 
 
 
