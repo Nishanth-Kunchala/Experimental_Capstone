@@ -59,4 +59,11 @@ t = 1000;
 
 [ISP, Xac, theta_ac] = Thruster_Data(uTR,xTR,dt);
 
-    
+writematrix(K,'Gain_Matrix.txt')
+
+%%
+
+x1 = [0.5, 0.5, -1.5, 0.5, -0.5, 0.5, -pi()/4, pi()/4, pi()/2, pi()/4, 0, -pi()/4]';
+
+u1 = -K*x1
+

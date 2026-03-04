@@ -1,11 +1,13 @@
 import omni
 import carb
 import numpy as np
+
 from pxr import Gf, UsdPhysics, UsdGeom, PhysicsSchemaTools
+from omni.isaac.core.utils.rotations import quat_to_euler_angles
 
 #from omni.physx.scripts import physicsUtils
 # Cubesat class
-class CubeSatController:
+class CubeSatSetup:
 	
 	def __init__(self):
 		# Creating general vars
@@ -17,7 +19,10 @@ class CubeSatController:
 		
 		self.stage = omni.usd.get_context().get_stage()
 		self.stage_id = omni.usd.get_context().get_stage_id()
+		
 		self.CubeSat = self.stage.GetPrimAtPath(self.Cube_path)
+		self.xform = UsdGeom.Xformable(self.CubeSat)
+		
 		self.CubeSat_Properties()
 		
 	# Assign Cube Properties
@@ -31,8 +36,9 @@ class CubeSatController:
 		CubeSat_dynamics = UsdPhysics.RigidBodyAPI.Apply(self.CubeSat)
 		UsdPhysics.CollisionAPI.Apply(self.CubeSat)
 		
-		self.CubeSat_mass = UsdPhysics.MassAPI.Apply(self.CubeSat)
-		self.CubeSat_mass.CreateMassAttr(self.m) 
+		#self.CubeSat_mass = UsdPhysics.MassAPI.Apply(self.CubeSat)
+		#self.CubeSat_mass.CreateMassAttr(self.m) 
+		self.CubeSat.GetAttribute("physics:mass").Set(self.m)
 		
 		self.CubeSat.GetAttribute("physics:diagonalInertia").Set(self.Inertia_vec)
 		#World/Cube.physics:diagonalInertia
@@ -67,7 +73,6 @@ class CubeSatController:
 		]
 		
 		# Setting Thrusters as Xforms
-		
 		for name, pos, axis in self.Thruster:
 			
 			# Setting Current Thruster
@@ -120,26 +125,64 @@ class CubeSatController:
 			PhysicsSchemaTools.sdfPathToInt(self.Cube_path),
 			Thruster_force,
 			pos)
+			
 
 # Simulation Class
-class SimulationManager:
+class CubeSatController:
 	
 	def __init__(self):
 		
-		self.sim = CubeSatController()
+		 #Generating Cube
+		self.sim = CubeSatSetup()
 		self.controller_dt = 0.01
 		self.actuator_step = 0.0
+		
 		self.cmd = np.zeros(12)
 		
+		# Setting variables to read the API
+		self.x = self.sim.CubeSat.GetAttribute("xformOp:translate")
+		self.vel = self.sim.CubeSat.GetAttribute("physics:velocity")
+		self.w = self.sim.CubeSat.GetAttribute("physics:angularVelocity")
+		
+		# Setting up the physxs sim
 		self.physx = omni.physx.acquire_physx_interface()
 		self.sub = None
+		
+		# Reading the gain matrix
+		self.K = np.loadtxt(r"C:\Users\anton\OneDrive\Documents\GitHub\Experimental_Capstone\Gain_Matrix.csv", delimiter=',')
+		
+	
+	def sim_state(self):
+		
+		# Finding the States from IsaacSim
+		pos = self.x.Get()
+		linear_vel = self.vel.Get()
+		
+		# Calculating the Euler Angles using a rotation matrix
+		transform = self.sim.xform.ComputeLocalToWorldTransform(0.0)
+		rotation = transform.ExtractRotation()
+		
+		orient = (rotation.Decompose(Gf.Vec3d(1,0,0),
+		Gf.Vec3d(0,1,0),
+		Gf.Vec3d(0,0,1)
+		))*(np.pi/180)
+		
+		angular_vel =( w.Get())*(np.pi/180)
+		
+		# Build the state vector
+		state = np.array([pos[0], pos[1], pos[2],
+		linear_vel[0], linear_vel[1], linear_vel[2],
+		orient[0], orient[1], orient[2],
+		angular_vel[0], angular_vel[1], angular_vel[2]
+		])
+		
+		return state
 	
 	# Function that is called each physics time step, add controller here
 	def sim_step(self,dt):
 		
 		# Controller logic goes here. Use the controller_dt and actuator_step to
-		# reprsent the frequency that the controller updates at
-		
+		# reprsent the frequency that the controller updates a
 		self.sim.apply_thrust(self.cmd)
 	
 	# Starts the controller simulation
@@ -158,18 +201,53 @@ class SimulationManager:
 			self.sub.unsubscribe()
 			self.sub = None
 			self.cmd = np.zeros(12)
-			
+		
 	
-
 # Check whether there is already a Cube_main Object
+
+# del Cube_main
 
 if "Cube_main" not in globals():
 	
 	print("Generating Cube_main Object")
-	Cube_main = SimulationManager()
+	Cube_main = CubeSatController()
 
+Cube_main.sim.CubeSat_Properties()
 #Cube_main.start_sim()
 #Cube_main.stop_sim()
+
+#print(Cube_main.K)
+
+#x = Cube_main.sim.CubeSat.GetAttribute("xformOp:translate")
+#vel = Cube_main.sim.CubeSat.GetAttribute("physics:velocity")
+#w = Cube_main.sim.CubeSat.GetAttribute("physics:angularVelocity")
+
+#pos = x.Get()
+#linear_vel = vel.Get()
+
+#transform = Cube_main.sim.xform.ComputeLocalToWorldTransform(0.0)
+#rotation = transform.ExtractRotation()
+
+#orient = (rotation.Decompose(Gf.Vec3d(1,0,0),
+#Gf.Vec3d(0,1,0),
+#Gf.Vec3d(0,0,1)))*(np.pi/180)
+
+#angular_vel =( w.Get())*(np.pi/180)
+#angular_vel =( w.Get())*(np.pi/180)
+
+# Build the state vector
+#state = np.array([pos[0], pos[1], pos[2],
+#linear_vel[0], linear_vel[1], linear_vel[2],
+#orient[0], orient[1], orient[2],angular_vel[0],
+#angular_vel[1], angular_vel[2]
+#])
+
+#w1 = angle.GetReal()
+#x1, y1, z1 = angle.GetImaginary()
+
+#print(-Cube_main.K @ state2)
+
+
 
 
 
