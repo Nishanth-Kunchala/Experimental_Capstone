@@ -22,7 +22,11 @@ class CubeSatController:
 		
 	# Assign Cube Properties
 	def CubeSat_Properties(self):
+		
 		self.m = 1.35 # CubeSat mass in kg
+		self.Cube_Dim = 0.1 # 10cm in m
+		self.Inertia =(self.m/6)*((self.Cube_Dim**2) - (0.02**2))
+		self.Inertia_vec = Gf.Vec3d(self.Inertia,self.Inertia,self.Inertia)
 		
 		CubeSat_dynamics = UsdPhysics.RigidBodyAPI.Apply(self.CubeSat)
 		UsdPhysics.CollisionAPI.Apply(self.CubeSat)
@@ -30,8 +34,8 @@ class CubeSatController:
 		self.CubeSat_mass = UsdPhysics.MassAPI.Apply(self.CubeSat)
 		self.CubeSat_mass.CreateMassAttr(self.m) 
 		
-		self.Cube_Dim = 0.1 # 10cm in m
-		
+		self.CubeSat.GetAttribute("physics:diagonalInertia").Set(self.Inertia_vec)
+		#World/Cube.physics:diagonalInertia
 		self.lx =self.Cube_Dim/2
 		self.ly =self.Cube_Dim/2
 		self.lz = self.Cube_Dim/2
@@ -166,6 +170,7 @@ if "Cube_main" not in globals():
 
 #Cube_main.start_sim()
 #Cube_main.stop_sim()
+
 
 
 
