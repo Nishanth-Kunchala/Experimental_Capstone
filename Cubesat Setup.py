@@ -13,9 +13,10 @@ class CubeSatSetup:
 		# Creating general vars
 		self.Cube_path = "/World/Cube"
 		
-		self.Thruster_path = []
-		self.thruster_cmd = np.zeros(12)
-		self.Thrust = 55/1000
+		self.thruster_count = 12;
+		self.thruster_path = []
+		self.thruster_cmd = np.zeros(self.thruster_count)
+		self.thrust = 55/1000
 		
 		self.stage = omni.usd.get_context().get_stage()
 		self.stage_id = omni.usd.get_context().get_stage_id()
@@ -36,19 +37,15 @@ class CubeSatSetup:
 		CubeSat_dynamics = UsdPhysics.RigidBodyAPI.Apply(self.CubeSat)
 		UsdPhysics.CollisionAPI.Apply(self.CubeSat)
 		
-		#self.CubeSat_mass = UsdPhysics.MassAPI.Apply(self.CubeSat)
-		#self.CubeSat_mass.CreateMassAttr(self.m) 
 		self.CubeSat.GetAttribute("physics:mass").Set(self.m)
-		
 		self.CubeSat.GetAttribute("physics:diagonalInertia").Set(self.Inertia_vec)
+		
 		#World/Cube.physics:diagonalInertia
 		self.lx =self.Cube_Dim/2
 		self.ly =self.Cube_Dim/2
 		self.lz = self.Cube_Dim/2
 		self.l = 0.08/2 # m (0.8 U) the side distances (not full U)
 		self.Dc = 0.05/2 # m (0.5 U) the distance between center thrusters
-		
-		self.T_force = 25/1000 # Thrust Magnitude in newtons
 		
 		# Setting up Thruster List
 		# Name, Location, Rotation Axis, Rotation Magnitude
@@ -76,7 +73,7 @@ class CubeSatSetup:
 		for name, pos, axis in self.Thruster:
 			
 			# Setting Current Thruster
-			self.Thruster_path.append(self.Cube_path + "/" + name)
+			self.thruster_path.append(self.Cube_path + "/" + name)
 			Current_thruster =  self.stage.GetPrimAtPath(self.Cube_path + "/" + name)
 			
 			# Setting Position and Orientation
@@ -96,7 +93,7 @@ class CubeSatSetup:
 		stage_id = PhysicsSchemaTools.sdfPathToInt(self.Cube_path)
 		
 		# Looping through Thrusters
-		for i, path in enumerate(self.Thruster_path):
+		for i, path in enumerate(self.thruster_path):
 			
 			# Only apply a force when prompted by the controller
 			if cmd_vector[i] == 0:
@@ -118,7 +115,7 @@ class CubeSatSetup:
 			pos = transform_matrix.ExtractTranslation()
 			
 			# Computing the force vector
-			Thruster_force = world_cord*self.Thrust
+			Thruster_force = world_cord*self.thrust
 			
 			sim_physx.apply_force_at_pos(
 			self.stage_id,
@@ -134,10 +131,10 @@ class CubeSatController:
 		
 		 #Generating Cube
 		self.sim = CubeSatSetup()
-		self.controller_dt = 0.01
+		self.controller_step = 0.01
 		self.actuator_step = 0.0
 		
-		self.cmd = np.zeros(12)
+		self.cmd = np.zeros(self.sim.thruster_count)
 		
 		# Setting variables to read the API
 		self.x = self.sim.CubeSat.GetAttribute("xformOp:translate")
@@ -148,8 +145,9 @@ class CubeSatController:
 		self.physx = omni.physx.acquire_physx_interface()
 		self.sub = None
 		
-		# Reading the gain matrix
+		# Setting LQR vals
 		self.K = np.loadtxt(r"C:\Users\anton\OneDrive\Documents\GitHub\Experimental_Capstone\Gain_Matrix.csv", delimiter=',')
+		self.f_states = np.zeros(self.sim.thruster_count)
 		
 	
 	def sim_state(self):
@@ -167,7 +165,7 @@ class CubeSatController:
 		Gf.Vec3d(0,0,1)
 		))*(np.pi/180)
 		
-		angular_vel =( w.Get())*(np.pi/180)
+		angular_vel =(self.w.Get())*(np.pi/180)
 		
 		# Build the state vector
 		state = np.array([pos[0], pos[1], pos[2],
@@ -178,19 +176,58 @@ class CubeSatController:
 		
 		return state
 	
+	# Function that performs PWPF LQR control allocation
+	def compute_control(self,state, Km=4.0, Tm=0.1, Uon=0.7, Uoff=0.4):
+		
+		# Calculating LQR Thrust
+		u_lqr = -self.K @ state
+		u_lqr[u_lqr < 0] = 0
+		
+		# Setting pwpwd
+		u_pwpf = np.zeros(self.cmd.shape[0])
+		
+		for i in range(self.sim.thruster_count):
+			# Error between desired continuous thrust and actual applied discrete thrust
+			e = u_lqr[i] - self.cmd[i]*self.sim.thrust
+			
+			# Discrete integration for the filter state
+			self.f_states[i] += (self.controller_step / Tm) * (Km * e - self.f_states[i])
+			
+			 # Schmidt Trigger (Hysteresis logic)
+			if np.abs(self.f_states[i]) >= Uon:
+				
+				u_pwpf[i] = 1
+				
+			elif np.abs(self.f_states[i]) <= Uoff:
+				
+				 u_pwpf[i] = 0
+				
+			
+		return u_pwpf
+	
+	
 	# Function that is called each physics time step, add controller here
 	def sim_step(self,dt):
 		
-		# Controller logic goes here. Use the controller_dt and actuator_step to
-		# reprsent the frequency that the controller updates a
+		self.actuator_step += dt
+		
+		# re-calculate the thrust each controller step
+		if self.actuator_step >= self.controller_step:
+			
+			self.actuator_step = 0.0
+			state = self.sim_state()
+			self.cmd = self.compute_control(state)
+			
 		self.sim.apply_thrust(self.cmd)
+		
 	
 	# Starts the controller simulation
 	def start_sim(self):
 		
 		if self.sub is None:
 			
-			self.cmd = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,1]
+			state = self.sim_state()
+			#self.cmd = np.zeros[self.sim.thruster_count]
 			self.sub = self.physx.subscribe_physics_step_events(self.sim_step)
 			
 	
@@ -200,55 +237,17 @@ class CubeSatController:
 		if self.sub is not None:
 			self.sub.unsubscribe()
 			self.sub = None
-			self.cmd = np.zeros(12)
+			self.cmd = np.zeros(self.sim.thruster_count)
 		
 	
 # Check whether there is already a Cube_main Object
-
-# del Cube_main
+#del Cube_main
 
 if "Cube_main" not in globals():
 	
 	print("Generating Cube_main Object")
 	Cube_main = CubeSatController()
 
-Cube_main.sim.CubeSat_Properties()
 #Cube_main.start_sim()
-#Cube_main.stop_sim()
-
-#print(Cube_main.K)
-
-#x = Cube_main.sim.CubeSat.GetAttribute("xformOp:translate")
-#vel = Cube_main.sim.CubeSat.GetAttribute("physics:velocity")
-#w = Cube_main.sim.CubeSat.GetAttribute("physics:angularVelocity")
-
-#pos = x.Get()
-#linear_vel = vel.Get()
-
-#transform = Cube_main.sim.xform.ComputeLocalToWorldTransform(0.0)
-#rotation = transform.ExtractRotation()
-
-#orient = (rotation.Decompose(Gf.Vec3d(1,0,0),
-#Gf.Vec3d(0,1,0),
-#Gf.Vec3d(0,0,1)))*(np.pi/180)
-
-#angular_vel =( w.Get())*(np.pi/180)
-#angular_vel =( w.Get())*(np.pi/180)
-
-# Build the state vector
-#state = np.array([pos[0], pos[1], pos[2],
-#linear_vel[0], linear_vel[1], linear_vel[2],
-#orient[0], orient[1], orient[2],angular_vel[0],
-#angular_vel[1], angular_vel[2]
-#])
-
-#w1 = angle.GetReal()
-#x1, y1, z1 = angle.GetImaginary()
-
-#print(-Cube_main.K @ state2)
-
-
-
-
-
+Cube_main.stop_sim()
 
