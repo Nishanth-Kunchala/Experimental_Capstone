@@ -1,99 +1,104 @@
 import numpy as np
-from scipy.linalg import solve_discrete_are
-from scipy.signal import cont2discrete
-from statespace import get_cubesat_matrices
 
-class LQRPWPFController:
-    def __init__(self, mass=1.35, dim=0.10, max_thrust=0.50, dt=0.01, 
-                 Km=4.0, Tm=0.1, Uon=0.7, Uoff=0.4, Q_weight=100.0, R_weight=1.0):
-        """
-        Initializes the LQR controller and PWPF modulator states.
-        """
-        self.dt = dt
-        self.max_thrust = max_thrust
-        
-        # PWPF Parameters
-        self.Km = Km
-        self.Tm = Tm
-        self.Uon = Uon
-        self.Uoff = Uoff
-        self.Um = max_thrust
-        
-        # 1. MODEL & LQR INITIALIZATION
-        A_c, B_c, _, _ = get_cubesat_matrices(mass, dim, dim, dim, max_thrust)
-        self.A_d, self.B_d, _, _, _ = cont2discrete((A_c, B_c, np.eye(12), np.zeros((12, B_c.shape[1]))), dt)
+import numpy as np
 
-        Q = np.eye(12) * Q_weight
-        R = np.eye(B_c.shape[1]) * R_weight
-        
-        # Calculate LQR Gain Matrix K
-        P = solve_discrete_are(self.A_d, self.B_d, Q, R)
-        self.K = np.linalg.inv(R + self.B_d.T @ P @ self.B_d) @ (self.B_d.T @ P @ self.A_d)
-        
-        # 2. PWPF STATE INITIALIZATION
-        self.num_thrusters = self.B_d.shape[1]
-        self.f_states = np.zeros(self.num_thrusters)  # Internal filter values
-        self.u_pwpf = np.zeros(self.num_thrusters)    # Current on/off state of thrusters
-
-    def compute_control(self, current_state):
-        """
-        Computes the discrete thruster commands for a single time step.
-        
-        Args:
-            current_state (np.ndarray): Current state vector (1D array of length 12)
-            
-        Returns:
-            np.ndarray: Thruster firing commands for this time step
-        """
-        # A. Calculate desired continuous control (u = -Kx)
-        u_desired = -self.K @ current_state
-        
-        # B. Apply PWPF modulation to EVERY thruster
-        u_next_step = np.zeros(self.num_thrusters)
-        
-        for i in range(self.num_thrusters):
-            # 1. Error signal (Desired - Previous Modulated Output)
-            e = u_desired[i] - self.u_pwpf[i]
-            
-            # 2. Update Filter State (Discrete integration)
-            self.f_states[i] += (self.dt / self.Tm) * (self.Km * e - self.f_states[i])
-            
-            # 3. Schmidt Trigger (Hysteresis Logic)
-            if np.abs(self.f_states[i]) >= self.Uon:
-                u_next_step[i] = self.Um * np.sign(self.f_states[i])
-            elif np.abs(self.f_states[i]) <= self.Uoff:
-                u_next_step[i] = 0
-            else:
-                # Inside the deadband: keep the thruster in its previous state
-                u_next_step[i] = self.u_pwpf[i]
-                
-        # Update internal state for the next loop iteration
-        self.u_pwpf = u_next_step
-        
-        return self.u_pwpf
+def compute_pwpf_lqr_thrust(x, K, f_states, u_pwpf, dt=0.01, Km=4.0, Tm=0.1, Uon=0.7, Uoff=0.4, Um=0.50):
+    """
+    Computes discrete thruster commands using LQR and PWPF modulation.
     
-'''
-EXAMPLE USAGE!!!!!!!!!!
-THIS IS LIKE HALF PSEUDO CODE BUT IT GIVES YOU AN IDEA OF HOW I SET UP THE CLASS 
-AND HOW TO USE IT IN A SIMULATION LOOP. YOU'LL NEED TO FILL IN THE SIMULATION INTERFACING PARTS.
-'''
+    Args:
+        x: Current state vector (1D numpy array)
+        K: LQR Gain matrix (2D numpy array)
+        f_states: Current internal PWPF filter states (1D numpy array)
+        u_pwpf: Previous step's thruster commands (1D numpy array)
+        dt, Km, Tm, Uon, Uoff, Um: PWPF tuning parameters.
+        
+    Returns:
+        u_next_step: New thruster commands to apply in the simulation this step.
+        f_states: Updated PWPF filter states (to pass into the next step).
+    """
+    # 1. Calculate desired continuous control effort (u = -K * x)
+    u_desired = -K @ x
 
-# 1. Initialize the controller BEFORE the simulation loop begins
-controller = LQRPWPFController(mass=1.35, dim=0.10, max_thrust=0.50, dt=0.01)
+    # 2. Apply PWPF Modulation
+    num_thrusters = len(u_pwpf)
+    u_next_step = np.zeros(num_thrusters)
 
-# Dummy initial state (replace with reading from your sim)
-current_state = np.array([1.0, 0.5, -0.5, 0,0,0, 0.75, -0.75, 0.75, 0,0,0])
+    for i in range(num_thrusters):
+        # Error between desired continuous thrust and actual applied discrete thrust
+        e = u_desired[i] - u_pwpf[i]
+        
+        # Discrete integration for the filter state
+        f_states[i] += (dt / Tm) * (Km * e - f_states[i])
 
+        # Schmidt Trigger (Hysteresis logic)
+        if np.abs(f_states[i]) >= Uon:
+            u_next_step[i] = Um * np.sign(f_states[i])
+        elif np.abs(f_states[i]) <= Uoff:
+            u_next_step[i] = 0
+        else:
+            # Inside the deadband: keep the thruster in its previous state
+            u_next_step[i] = u_pwpf[i]
+
+    return u_next_step, f_states
+
+# ==========================================
+# 1. INITIALIZATION (Run once before the loop)
+# ==========================================
+NUM_STATES = 12
+NUM_THRUSTERS = 12
+
+# the pre-computed LQR Gain Matrix
+K = np.array([
+    [ 0.000000,  0.000000, -4.795644, -0.000000,  0.000000, -5.428841,  1.429911,  1.359754, -0.000000,  1.446508,  1.374915,  0.000000],
+    [ 0.000000, -4.795644,  0.000000, -0.000000, -5.428841,  0.000000,  1.183251, -0.000000, -1.821959,  1.196985, -0.000000, -1.842984],
+    [-0.000000, -0.000000,  4.795644, -0.000000, -0.000000,  5.428841,  1.429911, -1.359754, -0.000000,  1.446508, -1.374915,  0.000000],
+    [-0.000000,  4.795644, -0.000000,  0.000000,  5.428841, -0.000000,  1.183251,  0.000000,  1.821959,  1.196985,  0.000000,  1.842984],
+    [-4.795644,  0.000000,  0.000000, -5.428841, -0.000000,  0.000000,  0.000000, -0.846012, -0.000000,  0.000000, -0.855445, -0.000000],
+    [-4.795644,  0.000000,  0.000000, -5.428841, -0.000000, -0.000000, -0.000000,  0.846012,  0.000000,  0.000000,  0.855445,  0.000000],
+    [ 0.000000,  0.000000, -4.795644,  0.000000,  0.000000, -5.428841, -1.429911, -1.359754, -0.000000, -1.446508, -1.374915, -0.000000],
+    [-0.000000,  4.795644, -0.000000,  0.000000,  5.428841, -0.000000, -1.183251, -0.000000, -1.821959, -1.196985, -0.000000, -1.842984],
+    [-0.000000, -0.000000,  4.795644, -0.000000, -0.000000,  5.428841, -1.429911,  1.359754,  0.000000, -1.446508,  1.374915,  0.000000],
+    [ 0.000000, -4.795644,  0.000000, -0.000000, -5.428841,  0.000000, -1.183251,  0.000000,  1.821959, -1.196985,  0.000000,  1.842984],
+    [ 4.795644, -0.000000, -0.000000,  5.428841,  0.000000, -0.000000, -0.000000,  0.846012,  0.000000,  0.000000,  0.855445,  0.000000],
+    [ 4.795644, -0.000000, -0.000000,  5.428841,  0.000000, -0.000000,  0.000000, -0.846012, -0.000000, -0.000000, -0.855445, -0.000000]
+])
+
+# The variables that must persist between time steps
+f_states = np.zeros(NUM_THRUSTERS)
+u_pwpf = np.zeros(NUM_THRUSTERS)
+
+# ==========================================
+# 2. SIMULATION LOOP (Runs continuously)
+# ==========================================
 sim_running = True
+step = 0
+
 while sim_running:
-    # 2. Get the current state from the simulation environment
-    # current_state = get_state_from_sim() 
+    # A. Get the current state from Isaac Sim (Position, Velocity, Attitude, Rates)
+    # x = get_state_from_isaac_articulation()
     
-    # 3. Compute control action
-    thruster_commands = controller.compute_control(current_state)
+    # Dummy state for the example
+    x = np.array([1.0, 0.5, -0.5, 0.0, 0.0, 0.0, 0.75, -0.75, 0.75, 0.0, 0.0, 0.0])
     
-    # 4. Apply thruster commands to the simulation
-    # apply_commands_to_sim(thruster_commands)
+    # B. Compute the thruster commands
+    u_next, f_states = compute_pwpf_lqr_thrust(
+        x=x, 
+        K=K, 
+        f_states=f_states, 
+        u_pwpf=u_pwpf,
+        dt=0.01 # Make sure this matches the Isaac Sim physics step
+    )
     
-    # 5. Step simulation
-    # sim.step()
+    # C. Update the previous thruster state for the next loop iteration
+    u_pwpf = u_next 
+    
+    # D. Apply the forces to the Isaac Sim robot
+    # apply_forces_to_thrusters(u_next)
+    
+    print(f"Step {step} commands:", u_next)
+    
+    # Safety break for the example loop
+    step += 1
+    if step > 5:
+        sim_running = False
