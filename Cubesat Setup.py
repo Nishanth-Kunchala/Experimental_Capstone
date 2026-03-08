@@ -131,8 +131,22 @@ class CubeSatController:
 		
 		 #Generating Cube
 		self.sim = CubeSatSetup()
+		
+		# Setting stepping parameters
 		self.controller_step = 0.01
 		self.actuator_step = 0.0
+		self.t_step = 0
+		
+		# Setting convergence criteria
+		#x_ac = 5e-3;
+		#v_ac = 1e-3;
+		#theta_ac = 5*(np.pi/180)
+		#w_ac = 1*(np.pi/180)
+		
+		#self.conv = np.array([x_ac, x_ac, x_ac,
+		#v_ac, v_ac, v_ac,
+		#theta_ac, theta_ac, theta_ac,
+		#w_ac, w_ac, w_ac])
 		
 		self.cmd = np.zeros(self.sim.thruster_count)
 		
@@ -207,17 +221,24 @@ class CubeSatController:
 	
 	
 	# Function that is called each physics time step, add controller here
-	def sim_step(self,dt):
+	def sim_step(self,dt, sim_type="data"):
 		
 		self.actuator_step += dt
+		state = self.sim_state()
 		
 		# re-calculate the thrust each controller step
 		if self.actuator_step >= self.controller_step:
 			
 			self.actuator_step = 0.0
-			state = self.sim_state()
 			self.cmd = self.compute_control(state)
 			
+		# Logging Data
+		self.thrust_log.append(self.cmd)
+		self.t_log.append(self.t_step)
+		self.state_log.append(state)
+		
+		self.t_step += dt
+		
 		self.sim.apply_thrust(self.cmd)
 		
 	
@@ -227,7 +248,10 @@ class CubeSatController:
 		if self.sub is None:
 			
 			state = self.sim_state()
-			#self.cmd = np.zeros[self.sim.thruster_count]
+			
+			self.thrust_log = []
+			self.t_log = []
+			self.state_log = []
 			self.sub = self.physx.subscribe_physics_step_events(self.sim_step)
 			
 	
@@ -239,15 +263,34 @@ class CubeSatController:
 			self.sub = None
 			self.cmd = np.zeros(self.sim.thruster_count)
 		
+		self.log_sim()
+	
+	# Writes variables
+	def log_sim(self):
+		
+		thrust_log = np.array(self.thrust_log)
+		t_log = np.array(self.t_log)
+		state_log = np.array(self.state_log)
+		
+		path = "\\Users\\anton\\OneDrive\\Documents\\GitHub\\Experimental_Capstone\\sim_data.npz"
+		
+		np.savez(path, thrust_log=thrust_log, t_log=t_log, state_log = state_log)
+		
 	
 # Check whether there is already a Cube_main Object
-#del Cube_main
-
 if "Cube_main" not in globals():
 	
 	print("Generating Cube_main Object")
 	Cube_main = CubeSatController()
+	
+elif Cube_main.sub is not None:
+	
+	Cube_main.sub.unsubscribe()
+	Cube_main.sub = None
 
 #Cube_main.start_sim()
 Cube_main.stop_sim()
+
+
+
 
