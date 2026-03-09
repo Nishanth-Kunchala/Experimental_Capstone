@@ -67,3 +67,14 @@ x1 = [0.5, 0.5, -1.5, 0.5, -0.5, 0.5, -pi()/4, pi()/4, pi()/2, pi()/4, 0, -pi()/
 
 u1 = -K*x1
 
+%%
+clear
+clc
+dx = 0.01;
+ubar = 25/1000;
+dt = 1e-2;
+
+w = 1/(dx^2);
+R = 1/(ubar^2);
+
+[Aa, Ba, K] = CubeSat_Vacco8T(w,w,w,w,dt,R)
