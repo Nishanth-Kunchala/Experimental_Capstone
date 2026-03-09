@@ -11,21 +11,19 @@ global f_t uM
 t_vector = 0:dt:t;
 
 nodes = length(t_vector);
+Tcount = size(B,2);
 
 x = zeros(12,nodes);
-u = zeros(12,nodes);
+u = zeros(Tcount,nodes);
 
 x(:,1) = x0;
 
 % Initialize f_t, p, and uM
 f_t = max(-K*x(:,1),0);
-uM = zeros(12,1);   
+uM = zeros(Tcount,1);   
 
 % Marching
 i = 0;
-% abs((x(:,i+1)-x(:,i))/dt)
-% (sum(abs(x(4:6,i+1))) + sum(abs(x(10:12,i+1))))
-% (((sum(abs((x(:,i+1)-x(:,i))/dt)))
 
 % Convergence criteria
 x_ac = 5e-3; % 5 mm displacement
