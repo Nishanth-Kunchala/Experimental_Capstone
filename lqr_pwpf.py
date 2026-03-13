@@ -7,7 +7,7 @@ from statespace import get_cubesat_matrices
 # 1. PARAMETERS
 MASS = 1.35
 DIM = 0.10
-MAX_THRUST = 0.50
+MAX_THRUST = 0.055
 DT = 0.01
 STEPS = int(7.0 / DT)
 
