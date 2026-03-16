@@ -81,7 +81,7 @@ tic
 parfor i = 1:itr_tot
     
     % Gathering CubeSat parameters, Calculating dynamics and performance
-    [A,B,K] = CubeSat_12T(xw_grid(i),vw_grid(i),thetaw_grid(i),ww_grid(i),dt,Rs_grid(i));
+    [A,B,K, ~] = CubeSat_12T(xw_grid(i),vw_grid(i),thetaw_grid(i),ww_grid(i),dt,Rs_grid(i));
 
     [Xc, Uc, Tc] = Thruster_Sim(A,B,K,ubar,tmax,dt,x0);
 

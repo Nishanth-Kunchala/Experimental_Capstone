@@ -1,5 +1,5 @@
-function [Ad,Bd,K,G] = CubeSat_12T(xw,vw,thetaw,ww,dt,Rs)
-% This function contains the parameters for the Vacco 8-thruster CubeSat
+function [Ad,Bd, K, G] = CubeSat_8T(xw,vw,thetaw,ww,dt,Rs)
+% This function contains the parameters for the Vacco 8 -thruster CubeSat
 % Configuration, and outputs the neccesary control scheme inforation for
 % LQR-PWPF controls
 % inputs:
@@ -10,31 +10,39 @@ function [Ad,Bd,K,G] = CubeSat_12T(xw,vw,thetaw,ww,dt,Rs)
 % A and B matricies for the state-space model, the K gain LQR matrix
 
 % Thrusters and location Matrix
-lx = 0.1; % m (1 U)
-ly = 0.1; % m (1 U)
-lz = 0.1; % m (1 U)
+Tcount = 8;
 
-l = 0.08; % m (0.8 U) the side distances (not full U)
-Dc = 0.05; % m (0.5 U) the distance between center thrusters
+in2m = 0.0254; % inches to meters
 
-% Defining Thruster performace
-f = [0 0 -1; 0 -1 0; 0 0 1; 0 1 0; -1 0 0; -1 0 0; 0 0 -1; 0 -1 0; 0 0 1; 0 1 0; 1 0 0; 1 0 0]';
-r = zeros(3,12);
+
+% Thruster y and z locations
+dr = 2.65*in2m;
+
+ds = dr*sind(45);
+
+%T_ang = sqrt(2)/2;
+
+% Defining Thruster performacec`
+%f = [0 T_ang T_ang; 0 -T_ang -T_ang; 0 T_ang T_ang; 0 -T_ang -T_ang; -1 0 0; 1 0 0; -1 0 0; 1 0 0]';
+f = [0 1 0; 0 -1 0; 0 1 0; 0 -1 -0; -1 0 0; 1 0 0; -1 0 0; 1 0 0]';
+
+r = zeros(3,Tcount);
 
 % x positions
-r(1,1:6) = lx/2;
-r(1,7:12) = -lx/2;
+r(1,:) = 0;
 
 % y positions
-r(2,:) = [-l ly l -ly 0 0 l ly -l -ly 0 0]./2;
+%r(2,:) = [-ds, -ds, ds, ds, -ds, -ds, ds, ds];
+r(2,:) = [0, 0, 0, 0, -dr, -dr, dr, dr];
 
 % z positions
-r(3,:) = [lz l -lz -l Dc -Dc lz -l -lz l Dc -Dc]./2;
+%r(3,:) = [ds, ds, -ds, -ds, ds, ds, -ds, -ds];
+r(3,:) = [dr, dr, -dr, -dr, 0, 0, 0, 0];
 
 % Creating G Matrix
-G = zeros(6,length(f));
+G = zeros(6,Tcount);
 
-for i = 1:length(f)
+for i = 1:Tcount
 
     G(1:3,i) = f(:,i);
     G(4:6,i) = cross(r(:,i),f(:,i));
@@ -51,12 +59,14 @@ Izz = Ixx;
 Im = [Ixx; Iyy; Izz];
 
 % Creating A matrix
-A = zeros(12);
+n = 12; % number of states
+
+A = zeros(n);
 A(1:3,4:6) = eye(3);
 A(7:9,10:12) = eye(3);
 
 % Creating B Matrix
-B = zeros(12);
+B = zeros(n,Tcount);
 B(4:6,:) = (1/m).*G(1:3,:);
 B(10:12,:) = (1./Im).*G(4:6,:);
 
@@ -67,7 +77,7 @@ sysd = c2d(sys,dt);
 
 % LQR Parameters
 Q = diag([xw, xw, xw, vw, vw, vw, thetaw, thetaw, thetaw, ww, ww, ww]);
-R = Rs*eye(length(f));
+R = Rs*eye(Tcount);
 
 [K, ~, ~] = dlqr(Ad,Bd,Q,R);
 

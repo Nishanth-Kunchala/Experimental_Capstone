@@ -1,4 +1,4 @@
-function [Ad,Bd, K] = CubeSat_Vacco8T(xw,vw,thetaw,ww,dt,Rs)
+function [Ad,Bd,G] = CubeSat_Vacco8T(xw,vw,thetaw,ww,dt,Rs)
 % This function contains the parameters for the Vacco 8 -thruster CubeSat
 % Configuration, and outputs the neccesary control scheme inforation for
 % LQR-PWPF controls
@@ -14,27 +14,30 @@ Tcount = 8;
 
 in2m = 0.0254; % inches to meters
 
+
 % Thruster y and z locations
-dy1 = 2.65*in2m;
-dy2 = 2.65*in2m;
+dr = 2.65*in2m;
 
-dz1 = 2.65*in2m;
-dz2 = 2.65*in2m;
+ds = dr*sind(45);
 
-T_ang = sqrt(2)/2;
+%T_ang = sqrt(2)/2;
 
-% Defining Thruster performace
-f = [0 T_ang T_ang; 0 -T_ang -T_ang; 0 T_ang T_ang; 0 -T_ang -T_ang; -1 0 0; 1 0 0; -1 0 0; 1 0 0]';
+% Defining Thruster performacec`
+%f = [0 T_ang T_ang; 0 -T_ang -T_ang; 0 T_ang T_ang; 0 -T_ang -T_ang; -1 0 0; 1 0 0; -1 0 0; 1 0 0]';
+f = [0 1 0; 0 -1 0; 0 1 0; 0 -1 -0; -1 0 0; 1 0 0; -1 0 0; 1 0 0]';
+
 r = zeros(3,Tcount);
 
 % x positions
 r(1,:) = 0;
 
 % y positions
-r(2,:) = [-dy1, dy1, -dy1, dy1, -dy2, -dy2, dy2, dy2];
+%r(2,:) = [-ds, -ds, ds, ds, -ds, -ds, ds, ds];
+r(2,:) = [0, 0, 0, 0, -dr, -dr, dr, dr];
 
 % z positions
-r(3,:) = [dz1, dz1, -dz1, -dz1, dz2, dz2, -dz2, -dz2];
+%r(3,:) = [ds, ds, -ds, -ds, ds, ds, -ds, -ds];
+r(3,:) = [dr, dr, -dr, -dr, 0, 0, 0, 0];
 
 % Creating G Matrix
 G = zeros(6,Tcount);
@@ -76,6 +79,6 @@ sysd = c2d(sys,dt);
 Q = diag([xw, xw, xw, vw, vw, vw, thetaw, thetaw, thetaw, ww, ww, ww]);
 R = Rs*eye(Tcount);
 
-[K, ~, ~] = dlqr(Ad,Bd,Q,R);
+%[K, ~, ~] = dlqr(Ad,Bd,Q,R);
 
 end
