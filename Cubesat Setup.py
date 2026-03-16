@@ -16,7 +16,7 @@ class CubeSatSetup:
 		self.thruster_count = 12;
 		self.thruster_path = []
 		self.thruster_cmd = np.zeros(self.thruster_count)
-		self.thrust = 55/1000
+		self.thrust = 25/1000
 		
 		self.stage = omni.usd.get_context().get_stage()
 		self.stage_id = omni.usd.get_context().get_stage_id()
@@ -290,6 +290,7 @@ elif Cube_main.sub is not None:
 
 #Cube_main.start_sim()
 Cube_main.stop_sim()
+
 
 
 

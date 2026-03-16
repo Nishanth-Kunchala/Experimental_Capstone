@@ -33,7 +33,7 @@ R = 0.16;
 
 % Calling CubeSat Function
 [A, B, K, G] = CubeSat_12T(Xw,Vw,thetaw,ww,dt,R);
-
+[A, B, K] = CubeSat_12T(Xw,Vw,thetaw,ww,dt,R);
 
 % Setting a position deviations (in y)
 x0 = zeros(12,1);
@@ -75,8 +75,8 @@ dx = 0.01;
 ubar = 25/1000;
 dt = 1e-2;
 
-w = 1/(dx^2);
-R = 1/(ubar^2);
+w = 10; %1/(dx^2);
+R = 1; %1/(ubar^2);
 
 [Aa, Ba, K] = CubeSat_Vacco8T(w,w,w,w,dt,R)
 
