@@ -115,7 +115,7 @@ class CubeSatSetup:
 			pos = transform_matrix.ExtractTranslation()
 			
 			# Computing the force vector
-			Thruster_force = world_cord*self.thrust
+			Thruster_force = world_cord*cmd_vector[i]
 			
 			sim_physx.apply_force_at_pos(
 			self.stage_id,
@@ -216,8 +216,10 @@ class CubeSatController:
 				
 				u_pwpf[i] = 0
 				
-			
-		return u_pwpf
+		n = np.sum(u_pwpf > 0.01 * self.sim.thrust)
+		u_actual = np.zeros(self.cmd.shape[0]) if n >= 8 else u_pwpf * max(0.0, 1.0 - 0.10 * (n - 1))
+
+		return u_actual
 	
 	
 	# Function that is called each physics time step, add controller here
