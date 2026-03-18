@@ -210,7 +210,7 @@ class CubeSatController:
 			 # Schmidt Trigger (Hysteresis logic)
 			if np.abs(self.f_states[i]) >= Uon:
 				
-				u_pwpf[i] = 1
+				u_pwpf[i] = self.sim.thrust
 				
 			elif np.abs(self.f_states[i]) <= Uoff:
 				
@@ -274,7 +274,7 @@ class CubeSatController:
 		t_log = np.array(self.t_log)
 		state_log = np.array(self.state_log)
 		
-		path = "\\Users\\anton\\OneDrive\\Documents\\GitHub\\Experimental_Capstone\\sim_data.npz"
+		path = "\\Users\\anton\\OneDrive\\Documents\\GitHub\\Experimental_Capstone\\sim_data_mod_Tran.npz"
 		
 		np.savez(path, thrust_log=thrust_log, t_log=t_log, state_log = state_log)
 		
@@ -290,10 +290,7 @@ elif Cube_main.sub is not None:
 	Cube_main.sub.unsubscribe()
 	Cube_main.sub = None
 
+#Cube_main = CubeSatController()
 #Cube_main.start_sim()
 Cube_main.stop_sim()
-
-
-
-
 

@@ -13,7 +13,7 @@ class CubeSatSetup:
 		# Creating general vars
 		self.Cube_path = "/World/Cube"
 		
-		self.thruster_count = 12;
+		self.thruster_count = 12
 		self.thruster_path = []
 		self.thruster_cmd = np.zeros(self.thruster_count)
 		self.thrust = 25/1000
@@ -115,7 +115,7 @@ class CubeSatSetup:
 			pos = transform_matrix.ExtractTranslation()
 			
 			# Computing the force vector
-			Thruster_force = world_cord*self.thrust
+			Thruster_force = world_cord*cmd_vector[i]
 			
 			sim_physx.apply_force_at_pos(
 			self.stage_id,
@@ -204,17 +204,16 @@ class CubeSatController:
 		for i in range(self.sim.thruster_count):
 			# Error between desired continuous thrust and actual applied discrete thrust
 			e = u_lqr[i] - self.cmd[i]*self.sim.thrust
-		
+			
 			# Discrete integration for the filter state
 			self.f_states[i] += (self.controller_step / Tm) * (Km * e - self.f_states[i])
-			
+
 		index_max = np.argmax(self.f_states)
 		
 		 # Schmidt Trigger (Hysteresis logic)
-
 		if np.abs(self.f_states[index_max]) >= Uon:
 			
-			u_pwpf[index_max] = 1
+			u_pwpf[index_max] = self.sim.thrust
 			
 		elif np.abs(self.f_states[index_max]) <= Uoff:
 			
@@ -274,7 +273,7 @@ class CubeSatController:
 		t_log = np.array(self.t_log)
 		state_log = np.array(self.state_log)
 		
-		path = "\\Users\\anton\\OneDrive\\Documents\\GitHub\\Experimental_Capstone\\sim_data_Cyc_Tran.npz"
+		path = "\\Users\\anton\\OneDrive\\Documents\\GitHub\\Experimental_Capstone\\sim_data_cyc_Tran.npz"
 		
 		np.savez(path, thrust_log=thrust_log, t_log=t_log, state_log = state_log)
 		
@@ -289,10 +288,9 @@ elif Cube_main.sub is not None:
 	
 	Cube_main.sub.unsubscribe()
 	Cube_main.sub = None
+
 Cube_main = CubeSatController()
-#Cube_main.start_sim()
-Cube_main.stop_sim()
-
-
+Cube_main.start_sim()
+#Cube_main.stop_sim()
 
 

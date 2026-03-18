@@ -115,7 +115,7 @@ class CubeSatSetup:
 			pos = transform_matrix.ExtractTranslation()
 			
 			# Computing the force vector
-			Thruster_force = world_cord*self.thrust
+			Thruster_force = world_cord*cmd_vector[i]
 			
 			sim_physx.apply_force_at_pos(
 			self.stage_id,
@@ -210,7 +210,7 @@ class CubeSatController:
 			 # Schmidt Trigger (Hysteresis logic)
 			if np.abs(self.f_states[i]) >= Uon:
 				
-				u_pwpf[i] = 1
+				u_pwpf[i] = self.sim.thrust
 				
 			elif np.abs(self.f_states[i]) <= Uoff:
 				

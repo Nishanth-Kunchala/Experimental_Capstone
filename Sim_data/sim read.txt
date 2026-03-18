@@ -1,0 +1,21 @@
+The gain matrix is provided in the Gain_Matrix and the sim is ran at thrust = 25/1000 newtons for comparison
+
+stored data: 
+"thrust_log" is a matrix of all 12 thruster outputs for each time interval
+"t_log" is the time recording vector use to calc dt (about 0.017s)
+"state_log" is a matrix of all 12 states at each time interval
+
+See the Cubest_data script for an example of the data extraction
+
+Cyc == cycling data
+The thruster log output is saved as the actual thruster value, use as is
+
+mod == disturbance modeling data
+The thruster log output is saved as the actual thruster value, use as is
+
+[x y z rx ry rz] == [pos, rot]
+tran == start @ [1 1 1 0 0 0]
+rota == start @ [0 0 0 45 45 45]
+
+can check the isaac sim script "CubeSat Setup" for additional details on the data logging
+
