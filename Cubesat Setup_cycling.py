@@ -13,7 +13,7 @@ class CubeSatSetup:
 		# Creating general vars
 		self.Cube_path = "/World/Cube"
 		
-		self.thruster_count = 12;
+		self.thruster_count = 12
 		self.thruster_path = []
 		self.thruster_cmd = np.zeros(self.thruster_count)
 		self.thrust = 25/1000
@@ -190,7 +190,7 @@ class CubeSatController:
 		
 		return state
 	
-	# Function that performs PWPF LQR control allocation
+	#pute_control(self,state, Km=4.0, Tm=0.1, Uon=0. Function that performs PWPF LQR control allocation
 	def compute_control(self,state, Km=4.0, Tm=0.1, Uon=0.7, Uoff=0.4):
 		
 		# Calculating LQR Thrust
@@ -199,6 +199,7 @@ class CubeSatController:
 		
 		# Setting pwpwd
 		u_pwpf = np.zeros(self.cmd.shape[0])
+		max_T = 0
 		
 		for i in range(self.sim.thruster_count):
 			# Error between desired continuous thrust and actual applied discrete thrust
@@ -206,19 +207,19 @@ class CubeSatController:
 			
 			# Discrete integration for the filter state
 			self.f_states[i] += (self.controller_step / Tm) * (Km * e - self.f_states[i])
+
+		index_max = np.argmax(self.f_states)
+		
+		 # Schmidt Trigger (Hysteresis logic)
+		if np.abs(self.f_states[index_max]) >= Uon:
 			
-			 # Schmidt Trigger (Hysteresis logic)
-			if np.abs(self.f_states[i]) >= Uon:
-				
-				u_pwpf[i] = self.sim.thrust
-				
-			elif np.abs(self.f_states[i]) <= Uoff:
-				
-				u_pwpf[i] = 0
-				
+			u_pwpf[index_max] = self.sim.thrust
 			
+		elif np.abs(self.f_states[index_max]) <= Uoff:
+			
+			u_pwpf[index_max] = 0		
+
 		return u_pwpf
-	
 	
 	# Function that is called each physics time step, add controller here
 	def sim_step(self,dt, sim_type="data"):
@@ -272,7 +273,7 @@ class CubeSatController:
 		t_log = np.array(self.t_log)
 		state_log = np.array(self.state_log)
 		
-		path = "\\Users\\anton\\OneDrive\\Documents\\GitHub\\Experimental_Capstone\\sim_data.npz"
+		path = "\\Users\\anton\\OneDrive\\Documents\\GitHub\\Experimental_Capstone\\sim_data_cyc_Tran.npz"
 		
 		np.savez(path, thrust_log=thrust_log, t_log=t_log, state_log = state_log)
 		
@@ -288,10 +289,8 @@ elif Cube_main.sub is not None:
 	Cube_main.sub.unsubscribe()
 	Cube_main.sub = None
 
-#Cube_main.start_sim()
-Cube_main.stop_sim()
-
-
-
+Cube_main = CubeSatController()
+Cube_main.start_sim()
+#Cube_main.stop_sim()
 
 

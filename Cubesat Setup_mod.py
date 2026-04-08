@@ -216,8 +216,10 @@ class CubeSatController:
 				
 				u_pwpf[i] = 0
 				
-			
-		return u_pwpf
+		n = np.sum(u_pwpf > 0.01 * self.sim.thrust)
+		u_actual = np.zeros(self.cmd.shape[0]) if n >= 8 else u_pwpf * max(0.0, 1.0 - 0.10 * (n - 1))
+
+		return u_actual
 	
 	
 	# Function that is called each physics time step, add controller here
@@ -272,7 +274,7 @@ class CubeSatController:
 		t_log = np.array(self.t_log)
 		state_log = np.array(self.state_log)
 		
-		path = "\\Users\\anton\\OneDrive\\Documents\\GitHub\\Experimental_Capstone\\sim_data.npz"
+		path = "\\Users\\anton\\OneDrive\\Documents\\GitHub\\Experimental_Capstone\\sim_data_mod_Tran.npz"
 		
 		np.savez(path, thrust_log=thrust_log, t_log=t_log, state_log = state_log)
 		
@@ -288,10 +290,7 @@ elif Cube_main.sub is not None:
 	Cube_main.sub.unsubscribe()
 	Cube_main.sub = None
 
+#Cube_main = CubeSatController()
 #Cube_main.start_sim()
 Cube_main.stop_sim()
-
-
-
-
 
