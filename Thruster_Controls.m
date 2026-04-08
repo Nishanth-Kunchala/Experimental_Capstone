@@ -32,8 +32,7 @@ R = 0.16;
 %R = 1/(ubar^2);
 
 % Calling CubeSat Function
-[A, B, K, G] = CubeSat_12T(Xw,Vw,thetaw,ww,dt,R);
-[A, B, K] = CubeSat_12T(Xw,Vw,thetaw,ww,dt,R);
+[A, B, K, ~] = CubeSat_12T(Xw,Vw,thetaw,ww,dt,R);
 
 % Setting a position deviations (in y)
 x0 = zeros(12,1);
@@ -54,49 +53,59 @@ t = 1000;
 % This uses the current iteration of PWPF with LQR, outputs
 % constant positive u values in sinlge pulses at for each thruster
 
-[xTR,uTR,tTR] = Thruster_Sim(A,B,K,ubar,t,dt,x0); % Current custom thruster code
+%[xTR,uTR,tTR] = Thruster_Sim(A,B,K,ubar,t,dt,x0); % Current custom thruster code
 
-[h3,h4] = Control_Plot(xTR,uTR,tTR);
+%[h3,h4] = Control_Plot(xTR,uTR,tTR);
 
-[ISP, Xac, theta_ac] = Thruster_Data(uTR,xTR,dt);
+%[ISP, Xac, theta_ac] = Thruster_Data(uTR,xTR,dt);
 
-%writematrix(K,'Gain_Matrix.csv')
+writematrix(K,'Gain_Matrix2.csv')
+
+% Comparing the current matricies
+comp = readmatrix("Gain_Matrix.csv");
+comp2 = readmatrix("Gain_Matrix2.csv");
+
+disp("The two loaded matrix")
+disp(sum(sum(abs(comp - comp2))))
+disp("The generated and loaded matrix")
+disp(sum(sum(abs(comp - K))))
+
 
 %%
 
-x1 = [0.5, 0.5, -1.5, 0.5, -0.5, 0.5, -pi()/4, pi()/4, pi()/2, pi()/4, 0, -pi()/4]';
+%x1 = [0.5, 0.5, -1.5, 0.5, -0.5, 0.5, -pi()/4, pi()/4, pi()/2, pi()/4, 0, -pi()/4]';
 
-u1 = -K*x1
+%u1 = -K*x1
 
 %%
-clear
-clc
-dx = 0.01;
-ubar = 25/1000;
-dt = 1e-2;
-
-w = 10; %1/(dx^2);
-R = 1; %1/(ubar^2);
-
-[Aa, Ba, K] = CubeSat_Vacco8T(w,w,w,w,dt,R)
-
-% Setting a position deviations (in y)
-x0 = zeros(12,1);
-
-% Positions
-x0(1) = 2;
-x0(2) = 0.5;
-x0(3) = -0.5;
-
-% Angles
-x0(7) = 0.75;
-x0(8) = -0.75;
-x0(9) = 0.75;
-
-t = 1000;
-
-[xTR,uTR,tTR] = Thruster_Sim(Aa,Ba,K,ubar,t,dt,x0); % Current custom thruster code
-
-[h3,h4] = Control_Plot(xTR,uTR,tTR);
-
-[ISP, Xac, theta_ac] = Thruster_Data(uTR,xTR,dt);
+% clear
+% clc
+% dx = 0.01;
+% ubar = 25/1000;
+% dt = 1e-2;
+% 
+% w = 10; %1/(dx^2);
+% R = 1; %1/(ubar^2);
+% 
+% [Aa, Ba, K] = CubeSat_Vacco8T(w,w,w,w,dt,R)
+% 
+% % Setting a position deviations (in y)
+% x0 = zeros(12,1);
+% 
+% % Positions
+% x0(1) = 2;
+% x0(2) = 0.5;
+% x0(3) = -0.5;
+% 
+% % Angles
+% x0(7) = 0.75;
+% x0(8) = -0.75;
+% x0(9) = 0.75;
+% 
+% t = 1000;
+% 
+% [xTR,uTR,tTR] = Thruster_Sim(Aa,Ba,K,ubar,t,dt,x0); % Current custom thruster code
+% 
+% [h3,h4] = Control_Plot(xTR,uTR,tTR);
+% 
+% [ISP, Xac, theta_ac] = Thruster_Data(uTR,xTR,dt);

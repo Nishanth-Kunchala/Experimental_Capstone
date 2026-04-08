@@ -103,7 +103,3 @@ grid on
 xlabel("Tau_x")
 ylabel("Tau_y")
 zlabel("Tau_z")
-
-%%
-
-Rank(B)

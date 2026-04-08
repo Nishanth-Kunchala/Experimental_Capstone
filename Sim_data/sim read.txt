@@ -15,7 +15,6 @@ The thruster log output is saved as the actual thruster value, use as is
 
 [x y z rx ry rz] == [pos, rot]
 tran == start @ [1 1 1 0 0 0]
-rota == start @ [0 0 0 45 45 45]
+rota == start @ [0 0 0 15 30 45]
 
 can check the isaac sim script "CubeSat Setup" for additional details on the data logging
-
