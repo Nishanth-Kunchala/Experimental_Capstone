@@ -16,11 +16,17 @@ dt = 1e-2;
 % xw = 1/(dx)^2 where dx is maximum state difference from goal
 % R = 1/umax^2 where umax is the maximum thruster force
 
-x_w = 1/(5e-3)^2;
-v_w = 1/(1e-3)^2;
-theta_w = 1/(5*(pi()/180))^2;
-w_w = 1/(1*(pi()/180))^2;
-R_w = 0.41;
+% x_w = 1/(5e-3)^2;
+% v_w = 1/(1e-3)^2;
+% theta_w = 1/(5*(pi()/180))^2;
+% w_w = 1/(1*(pi()/180))^2;
+% R_w = 1;
+
+x_w = 4000;
+v_w = 100000;
+theta_w = 1.3131225400047;
+w_w = 328.280635001174;
+R_w = 1;
 
 % Tuned Variables
 % LQR Vars
@@ -61,27 +67,23 @@ afterEach(q, @(~) Progress_Update(itr_tot,lp));
 
 % Maneuver 1
 x0(1) = 1;
-x0(2) = 0.5;
-x0(3) = -0.5;
 
-x0(7) = 0.75;
-x0(8) = -0.75;
-x0(9) = 0.75;
 
 % Maneuver 2
-x02(7) = pi()/180;
+x02(9) = (pi()/180)*45;
 
 % Maneuver 3
-x0(1) = 2.5;
+x03(2) = 1;
 
 sheet = "Run_" + num2str(length(sheetnames("Tuning.xls")) + 1);
 
 % Using parfor to analyze parameters using multiple processing cores
 tic
+
 parfor i = 1:itr_tot
     
     % Gathering CubeSat parameters, Calculating dynamics and performance
-    [A,B,K, ~] = CubeSat_12T(xw_grid(i),vw_grid(i),thetaw_grid(i),ww_grid(i),dt,Rs_grid(i));
+    [A,B,K, ~] = CubeSat_12T_Test1(xw_grid(i),vw_grid(i),thetaw_grid(i),ww_grid(i),dt,Rs_grid(i));
 
     [Xc, Uc, Tc] = Thruster_Sim(A,B,K,ubar,tmax,dt,x0);
 
@@ -91,7 +93,7 @@ parfor i = 1:itr_tot
     if tmax > max(Tc)
 
         [Xc, Uc, Tc] = Thruster_Sim(A,B,K,ubar,tmax,dt,x02)
-        [Isp,X_ac,theta_ac] = Thruster_Data(Uc,Xc,Tc);
+        [Isp,X_ac,theta_ac] = Thruster_Data(Uc,Xc,dt);
 
         itr_param(i,:) = itr_param(i,:) + [Isp,X_ac,theta_ac,max(Tc),0,0,0,0,0]
 

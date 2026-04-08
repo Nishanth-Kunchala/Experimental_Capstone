@@ -72,18 +72,19 @@ figure()
 
 trisurf(Tau_map_12T,Tau(1,:),Tau(2,:),Tau(3,:),'FaceAlpha',0.4)
 
-hold on
+%hold on
 
-[Tau_x,Tau_y,Tau_z] = meshgrid(Tau_8T(1,:),Tau_8T(2,:),Tau_8T(3,:));
+%[Tau_x,Tau_y,Tau_z] = meshgrid(Tau_8T(1,:),Tau_8T(2,:),Tau_8T(3,:));
 
 %surf(Tau_x,Tau_y,Tau_z)
 
 axis equal
 grid on
 
-xlabel("Tau_x")
-ylabel("Tau_y")
-zlabel("Tau_z")
+xlabel("\tau_x")
+ylabel("\tau_y")
+zlabel("\tau_z")
+title("Torque Polytope: 12T CubeSat")
 
 camlight
 lighting gouraud
@@ -96,14 +97,9 @@ hold on
 
 %scatter3(Tau_8T(1,:),Tau_8T(2,:),Tau_8T(3,:),10,'cyan','filled')
 
-
 axis equal
 grid on
 
-xlabel("Tau_x")
-ylabel("Tau_y")
-zlabel("Tau_z")
-
-%%
-
-Rank(B)
+xlabel("\tau_x")
+ylabel("\tau_y")
+zlabel("\tau_z")
