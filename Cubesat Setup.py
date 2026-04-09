@@ -29,10 +29,14 @@ class CubeSatSetup:
 	# Assign Cube Properties
 	def CubeSat_Properties(self):
 		
-		self.m = 1.35 # CubeSat mass in kg
+		self.m = 2.652333  # CubeSat mass in kg
 		self.Cube_Dim = 0.1 # 10cm in m
-		self.Inertia =(self.m/6)*((self.Cube_Dim**2) - (0.02**2))
-		self.Inertia_vec = Gf.Vec3d(self.Inertia,self.Inertia,self.Inertia)
+		#self.Inertia =(self.m/6)*((self.Cube_Dim**2) - (0.02**2))
+		self.Inertia1 = 0.0487909933
+		self.Inertia2 = 0.0533788243 
+		self.Inertia3 = 0.0148340253
+		
+		self.Inertia_vec = Gf.Vec3d(self.Inertia1,self.Inertia2,self.Inertia3)
 		
 		CubeSat_dynamics = UsdPhysics.RigidBodyAPI.Apply(self.CubeSat)
 		UsdPhysics.CollisionAPI.Apply(self.CubeSat)
@@ -41,31 +45,32 @@ class CubeSatSetup:
 		self.CubeSat.GetAttribute("physics:diagonalInertia").Set(self.Inertia_vec)
 		
 		#World/Cube.physics:diagonalInertia
-		self.lx =self.Cube_Dim/2
-		self.ly =self.Cube_Dim/2
-		self.lz = self.Cube_Dim/2
-		self.l = 0.08/2 # m (0.8 U) the side distances (not full U)
+		self.lx = 0.0550
+		self.ly = 0.0460
+		self.lz = 0.0451
+		self.l = 0.04 
+		self.l2 = 0.0331
 		self.Dc = 0.05/2 # m (0.5 U) the distance between center thrusters
 		
 		# Setting up Thruster List
 		# Name, Location, Rotation Axis, Rotation Magnitude
 		self.Thruster = [
-
+# Mapped for Test Tuning (T10 and T8 swapped)
 		    ("T1", (self.lx, -self.l, self.lz), (0,0,0)),
-		    ("T2", (self.lx, self.ly, self.l),  (-90,0,0)),
+		    ("T2", (self.lx, self.ly, self.l2),  (-90,0,0)),
 		    ("T3", (self.lx, self.l, -self.lz),  (-180,0,0)),
-		    ("T4", (self.lx, -self.ly, -self.l),  (90,0,0)),
+		    ("T4", (self.lx, -self.ly, -self.l2),  (90,0,0)),
 
-		    ("T5", (self.lx, 0, self.Dc), (0,90,0)),
-		    ("T6", (self.lx, 0, -self.Dc), (0,90,0)),
+		    ("T5", (0.0680, 0, self.l2), (0,90,0)),
+		    ("T6", (0.0680, 0, -self.l2), (0,90,0)),
 
 		    ("T7", (-self.lx, self.l, self.lz), (0,0,0)),
-		    ("T8", (-self.lx, self.ly, -self.l), (-90,0,0)),
+		    ("T8", (-self.lx, -self.ly, self.l2), (90,0,0)),
 		    ("T9", (-self.lx, -self.l, -self.lz), (-180,0,0)),
-		    ("T10", (-self.lx, -self.ly, self.l), (90,0,0)),
+		    ("T10", (-self.lx, self.ly, -self.l2), (-90,0,0)),
 
-		    ("T11", (-self.lx, 0, self.Dc), (0,-90,0)),
-		    ("T12", (-self.lx, 0, -self.Dc), (0,-90,0)),
+		    ("T11", (-0.0680, 0, self.l2), (0,-90,0)),
+		    ("T12", (-0.00680, 0, -self.l2), (0,-90,0)),
 		    
 		]
 		
@@ -160,7 +165,7 @@ class CubeSatController:
 		self.sub = None
 		
 		# Setting LQR vals
-		self.K = np.loadtxt(r"C:\Users\anton\OneDrive\Documents\GitHub\Experimental_Capstone\Gain_Matrix.csv", delimiter=',')
+		self.K = np.loadtxt(r"C:\Users\anton\OneDrive\Documents\GitHub\Experimental_Capstone\G_M_Test1.csv", delimiter=',')
 		self.f_states = np.zeros(self.sim.thruster_count)
 		
 	
@@ -272,7 +277,7 @@ class CubeSatController:
 		t_log = np.array(self.t_log)
 		state_log = np.array(self.state_log)
 		
-		path = "\\Users\\anton\\OneDrive\\Documents\\GitHub\\Experimental_Capstone\\sim_data.npz"
+		path = "\\Users\\anton\\OneDrive\\Documents\\GitHub\\Experimental_Capstone\\sim_T1Z_TX.npz"
 		
 		np.savez(path, thrust_log=thrust_log, t_log=t_log, state_log = state_log)
 		
@@ -288,8 +293,17 @@ elif Cube_main.sub is not None:
 	Cube_main.sub.unsubscribe()
 	Cube_main.sub = None
 
+# sim
+
 #Cube_main.start_sim()
-Cube_main.stop_sim()
+#Cube_main.stop_sim()
+
+
+
+
+
+
+
 
 
 
