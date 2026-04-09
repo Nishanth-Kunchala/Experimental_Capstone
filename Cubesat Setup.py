@@ -32,11 +32,12 @@ class CubeSatSetup:
 		self.m = 2.652333  # CubeSat mass in kg
 		self.Cube_Dim = 0.1 # 10cm in m
 		#self.Inertia =(self.m/6)*((self.Cube_Dim**2) - (0.02**2))
-		self.Inertia1 = 0.0487909933
-		self.Inertia2 = 0.0533788243 
-		self.Inertia3 = 0.0148340253
+		self.Inertia1 = np.array([0.0487909933,0.0533788243, 0.0148340253])
+		self.Inertia2 = np.array([0.0488292954,0.0148342631, 0.0533919391])
+		self.Inertia3 = np.array([0.0145439089,0.0491252827, 0.0533975722])
 		
-		self.Inertia_vec = Gf.Vec3d(self.Inertia1,self.Inertia2,self.Inertia3)
+		self.Inertia = self.Inertia2
+		self.Inertia_vec = Gf.Vec3d(self.Inertia[0],self.Inertia[1],self.Inertia[2])
 		
 		CubeSat_dynamics = UsdPhysics.RigidBodyAPI.Apply(self.CubeSat)
 		UsdPhysics.CollisionAPI.Apply(self.CubeSat)
@@ -165,7 +166,7 @@ class CubeSatController:
 		self.sub = None
 		
 		# Setting LQR vals
-		self.K = np.loadtxt(r"C:\Users\anton\OneDrive\Documents\GitHub\Experimental_Capstone\G_M_Test1.csv", delimiter=',')
+		self.K = np.loadtxt(r"C:\Users\anton\OneDrive\Documents\GitHub\Experimental_Capstone\G_M_Test2.csv", delimiter=',')
 		self.f_states = np.zeros(self.sim.thruster_count)
 		
 	
@@ -277,7 +278,7 @@ class CubeSatController:
 		t_log = np.array(self.t_log)
 		state_log = np.array(self.state_log)
 		
-		path = "\\Users\\anton\\OneDrive\\Documents\\GitHub\\Experimental_Capstone\\sim_T1Z_TX.npz"
+		path = "\\Users\\anton\\OneDrive\\Documents\\GitHub\\Experimental_Capstone\\sim_T2Y_TX.npz"
 		
 		np.savez(path, thrust_log=thrust_log, t_log=t_log, state_log = state_log)
 		
@@ -294,9 +295,14 @@ elif Cube_main.sub is not None:
 	Cube_main.sub = None
 
 # sim
-
+globals().clear()
 #Cube_main.start_sim()
 #Cube_main.stop_sim()
+
+
+
+
+
 
 
 
