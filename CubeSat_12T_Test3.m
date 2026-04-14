@@ -36,10 +36,10 @@ end
 
 % State Space xdot = Ax + Bu
 % Geometric Variables
-m = 1.70094; % mass in kg
-Ixx = 0.0083714309;
-Iyy = 0.0246239313;
-Izz = 0.0254215134;
+m = 2.652333; % mass in kg
+Ixx = 0.0145439089;
+Iyy = 0.0491252827;
+Izz = 0.0533975722;
 
 Im = [Ixx; Iyy; Izz];
 
