@@ -49,6 +49,7 @@ class CubeSatSetup:
 		self.CubeSat.GetAttribute("physics:diagonalInertia").Set(self.Inertia_vec)
 		self.CubeSat.GetAttribute("physxRigidBody:sleepThreshold").Set(0.005)
 		#0.000025
+		#0.005
 		#World/Cube.physics:diagonalInertia
 		self.lx = 0.0550
 		self.ly = 0.0460
@@ -70,9 +71,9 @@ class CubeSatSetup:
 		    ("T6", (0.0680, 0, -self.l2), (0,90,0)),
 
 		    ("T7", (-self.lx, self.l, self.lz), (0,0,0)),
-		    ("T8", (-self.lx, -self.ly, self.l2), (90,0,0)),
+		    ("T8", (-self.lx, self.ly, -self.l2), (-90,0,0)),
 		    ("T9", (-self.lx, -self.l, -self.lz), (-180,0,0)),
-		    ("T10", (-self.lx, self.ly, -self.l2), (-90,0,0)),
+		    ("T10", (-self.lx, -self.ly, self.l2), (90,0,0)),
 
 		    ("T11", (-0.0680, 0, self.l2), (0,-90,0)),
 		    ("T12", (-0.0680, 0, -self.l2), (0,-90,0)),
@@ -172,7 +173,7 @@ class CubeSatController:
 		self.sub = None
 		
 		# Setting LQR vals
-		self.K = np.loadtxt(r"C:\Users\anton\OneDrive\Documents\GitHub\Experimental_Capstone\G_M_Test1.csv", delimiter=',')
+		self.K = np.loadtxt(r"C:\Users\anton\OneDrive\Documents\GitHub\Experimental_Capstone\Gain_Matrix.csv", delimiter=',')
 		self.f_states = np.zeros(self.sim.thruster_count)
 		
 	
@@ -302,9 +303,10 @@ elif Cube_main.sub is not None:
 	Cube_main.sub = None
 
 # sim
-#globals().clear()
+globals().clear()
 #Cube_main.start_sim()
 #Cube_main.stop_sim()
+
 
 
 
