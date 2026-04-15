@@ -22,11 +22,11 @@ dt = 1e-2;
 % w_w = 1/(1*(pi()/180))^2;
 % R_w = 1;
 
-x_w = 4000;
-v_w = 100000;
-theta_w = 1.3131225400047;
-w_w = 328.280635001174;
-R_w = 1;
+x_w = 400;
+v_w = 10000;
+theta_w = 13.131225400047;
+w_w = 3282.80635001174;
+R_w = 10;
 
 % Tuned Variables
 % LQR Vars
@@ -36,11 +36,11 @@ thetaw = linspace(0.5,2,5).*theta_w;
 ww = linspace(0.5,2,5).*w_w;
 Rs = linspace(0.5,2,5).*R_w;
 
-% xw = [0.01, 0.1, 1, 10, 100].*x_w;
-% vw = [0.01, 0.1, 1, 10, 100].*v_w;
-% thetaw = [0.01, 0.1, 1, 10, 100].*theta_w;
-% ww = [0.01, 0.1, 1, 10, 100].*w_w;
-% Rs = [0.01, 0.1, 1, 10, 100].*R_w;
+ % xw = [0.01, 0.1, 1, 10, 100].*x_w;
+ % vw = [0.01, 0.1, 1, 10, 100].*v_w;
+ % thetaw = [0.01, 0.1, 1, 10, 100].*theta_w;
+ % ww = [0.01, 0.1, 1, 10, 100].*w_w;
+ % Rs = [0.01, 0.1, 1, 10, 100].*R_w;
 
 % Organizing into grids
 [xw_grid, vw_grid, thetaw_grid, ww_grid, Rs_grid] = ndgrid(xw,vw,thetaw,ww,Rs);
@@ -66,14 +66,15 @@ lp = waitbar(0,"Progress: 0.00%" );
 afterEach(q, @(~) Progress_Update(itr_tot,lp));
 
 % Maneuver 1
-x0(1) = 1;
-
+x0(1) = -1;
+x0(2) = -1;
+x0(3) = -1;
 
 % Maneuver 2
-x02(9) = (pi()/180)*45;
+x02(7) = -(pi()/180)*15;
+x02(8) = -(pi()/180)*30;
+x02(9) = -(pi()/180)*45;
 
-% Maneuver 3
-x03(2) = 1;
 
 sheet = "Run_" + num2str(length(sheetnames("Tuning.xls")) + 1);
 
@@ -97,14 +98,14 @@ parfor i = 1:itr_tot
 
         itr_param(i,:) = itr_param(i,:) + [Isp,X_ac,theta_ac,max(Tc),0,0,0,0,0]
 
-        if tmax > max(Tc)
-
-            [Xc, Uc, Tc] = Thruster_Sim(A,B,K,ubar,tmax,dt,x03)
-            [Isp,X_ac,theta_ac] = Thruster_Data(Uc,Xc,dt);
-
-            itr_param(i,:) = itr_param(i,:) + [Isp,X_ac,theta_ac,max(Tc),0,0,0,0,0]
-
-        end
+        % if tmax > max(Tc)
+        % 
+        %     [Xc, Uc, Tc] = Thruster_Sim(A,B,K,ubar,tmax,dt,x03)
+        %     [Isp,X_ac,theta_ac] = Thruster_Data(Uc,Xc,dt);
+        % 
+        %     itr_param(i,:) = itr_param(i,:) + [Isp,X_ac,theta_ac,max(Tc),0,0,0,0,0]
+        % 
+        % end
     end
 
 

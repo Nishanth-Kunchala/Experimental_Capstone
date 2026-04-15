@@ -26,9 +26,9 @@ uM = zeros(Tcount,1);
 i = 0;
 
 % Convergence criteria
-x_ac = 5e-3; % 5 mm displacement
-v_ac = 1e-3; % 1 mm/s velocity
-theta_ac = 5*(pi()/180); % 5 degrees angle
+x_ac = 0.05; %5e-3; % 5 mm displacement
+v_ac = 5e-3; % 1 mm/s velocity
+theta_ac = 30*(pi()/180); % 5 degrees angle
 w_ac = 1*(pi()/180); % 1 degree/s rotation
 
 

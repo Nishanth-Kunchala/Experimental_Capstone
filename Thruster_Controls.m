@@ -14,10 +14,10 @@ dt = 1e-2; % Time step
 dx = 0.01;
 du = 0.01;
 
-Xw = 2000; %1/(dx^2);
-Vw = 200000; %1/(du^2);
-thetaw = 1.64140317500588; %1/(dx^2);
-ww = 656.561270002348; %1/(du^2);
+Xw = 200; %1/(dx^2);
+Vw = 20000; %1/(du^2);
+thetaw = 21.3382412750764; %1/(dx^2);
+ww = 6565.61270002348; %1/(du^2);
 
 %Xw = 1/(dx^2);
 %Vw = 1/(du^2);
@@ -28,27 +28,27 @@ ww = 656.561270002348; %1/(du^2);
 % should try and conserve. larger = conservative adjustments, smaller
 %  = more agressive adjustments. Setting each thruster equal.
 % weight = 0.16; %1/(ubar^2);
-R = 1.25;
+R = 8.75;
 %R = 1/(ubar^2);
 
 % Calling CubeSat Function
-[A, B, ~, G] = CubeSat_12T_Test2(Xw,Vw,thetaw,ww,dt,R);
+[A, B, ~, G] = CubeSat_12T_Test1(Xw,Vw,thetaw,ww,dt,R);
 %[A, B, K] = CubeSat_12T(Xw,Vw,thetaw,ww,dt,R);
 
-K = readmatrix('G_M_Te')
+K = readmatrix('G_M_Test1.csv');
 
 % Setting a position deviations (in y)
 x0 = zeros(12,1);
 
 % Positions
-x0(1) = 0;
-x0(2) = 0;
-x0(3) = 0;
+%x0(1) = -1;
+%x0(2) = -1;
+%x0(3) = -1;
 
 % Angles
-x0(7) = 0;
-x0(8) = pi();
-x0(9) = 0;
+x0(7) = (pi()/180)*15;
+x0(8) = (pi()/180)*30;
+x0(9) = (pi()/180)*45;
 
 t = 1000;
 
@@ -57,14 +57,16 @@ t = 1000;
 % constant positive u values in sinlge pulses at for each thruster
 
 
-
 [xTR,uTR,tTR] = Thruster_Sim(A,B,K,ubar,t,dt,x0); % Current custom thruster code
 
 [h3,h4] = Control_Plot(xTR,uTR,tTR);
 
 [ISP, Xac, theta_ac] = Thruster_Data(uTR,xTR,dt);
 
-%writematrix(K,'Gain_Matrix_Test2.csv')
+disp(ISP)
+disp(length(uTR)*dt)
+
+writematrix(K,'Gain_Matrix_Test_3D.csv')
 
 %%
 
