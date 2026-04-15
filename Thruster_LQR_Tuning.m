@@ -16,6 +16,7 @@ dt = 1e-2;
 % xw = 1/(dx)^2 where dx is maximum state difference from goal
 % R = 1/umax^2 where umax is the maximum thruster force
 
+<<<<<<< HEAD
 % x_w = 1/(5e-3)^2;
 % v_w = 1/(1e-3)^2;
 % theta_w = 1/(5*(pi()/180))^2;
@@ -27,9 +28,23 @@ v_w = 10000;
 theta_w = 13.131225400047;
 w_w = 3282.80635001174;
 R_w = 10;
+=======
+x_w = 1/(5e-3)^2;
+v_w = 1/(1e-3)^2;
+theta_w = 1/(5*(pi()/180))^2;
+w_w = 1/(1*(pi()/180))^2;
+R_w = 1;
+>>>>>>> 35f21f71640b29605da17e9599a20c8317bd2739
+
+x_w = 400;
+v_w = 10000;
+theta_w = 131.31225400047;
+w_w = 32828.0635001174;
+R_w = 0.1;
 
 % Tuned Variables
 % LQR Vars
+
 xw = linspace(0.5,2,5).*x_w;
 vw = linspace(0.5,2,5).*v_w;
 thetaw = linspace(0.5,2,5).*theta_w;
@@ -69,6 +84,10 @@ afterEach(q, @(~) Progress_Update(itr_tot,lp));
 x0(1) = -1;
 x0(2) = -1;
 x0(3) = -1;
+<<<<<<< HEAD
+=======
+
+>>>>>>> 35f21f71640b29605da17e9599a20c8317bd2739
 
 % Maneuver 2
 x02(7) = -(pi()/180)*15;
