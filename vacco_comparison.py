@@ -7,7 +7,7 @@ from vacco_statespace import get_vacco8_matrices
 # ==========================================
 # 1. PARAMETERS
 # ==========================================
-MASS = 1.35
+MASS = 2.784
 MAX_THRUST = 0.025
 DT = 0.01
 STEPS = int(300.0 / DT) # 2. Increased to 5 Min to allow for full travel
@@ -62,7 +62,7 @@ prob = cp.Problem(cp.Minimize(cost), constraints)
 # ==========================================
 # 3. STATE INITIALIZATION 
 # ==========================================
-X = np.array([1.0, 0.5, -0.5, 0,0,0, 0.75, -0.75, 0.75, 0,0,0])
+X = np.array([1.0, 1.0, 1.0, 0,0,0, 0.0, 0.0, 0.0, 0,0,0])
 
 X_hist = []
 U_hist = []
