@@ -4,6 +4,9 @@ import numpy as np
 
 from pxr import Gf, UsdPhysics, UsdGeom, PhysicsSchemaTools
 from omni.isaac.core.utils.rotations import quat_to_euler_angles
+from isaacsim.util.debug_draw import _debug_draw
+
+draw = _debug_draw.acquire_debug_draw_interface()
 
 #from omni.physx.scripts import physicsUtils
 # Cubesat class
@@ -123,6 +126,8 @@ class CubeSatSetup:
 			Thruster_force,
 			pos)
 			
+			draw.draw_lines([pos], [pos +- 0.075*world_cord],[(1.0, 0.5, 0.0, 1.0)], [5])
+			
 
 # Simulation Class
 class CubeSatController:
@@ -229,7 +234,7 @@ class CubeSatController:
 		
 		# re-calculate the thrust each controller step
 		if self.actuator_step >= self.controller_step:
-			
+			draw.clear_lines()
 			self.actuator_step = 0.0
 			self.cmd = self.compute_control(state)
 			
@@ -289,8 +294,10 @@ elif Cube_main.sub is not None:
 	Cube_main.sub.unsubscribe()
 	Cube_main.sub = None
 
-Cube_main = CubeSatController()
+#globals().clear()
+#Cube_main = CubeSatController()
 Cube_main.start_sim()
 #Cube_main.stop_sim()
+
 
 
