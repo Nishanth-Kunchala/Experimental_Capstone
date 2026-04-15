@@ -66,7 +66,7 @@ t = 1000;
 disp(ISP)
 disp(length(uTR)*dt)
 
-writematrix(K,'G_M_T_3D.csv')
+%writematrix(K,'Gain_Matrix_Test_3D.csv')
 
 %%
 
