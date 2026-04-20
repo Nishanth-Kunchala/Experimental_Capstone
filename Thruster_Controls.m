@@ -14,10 +14,10 @@ dt = 1e-2; % Time step
 dx = 0.01;
 du = 0.01;
 
-Xw = 350; %1/(dx^2);
-Vw = 12500; %1/(du^2);
-thetaw = 11.4898222250411; %1/(dx^2);
-ww = 1641.40317500587; %1/(du^2);
+Xw = 800; %1/(dx^2);
+Vw = 16250; %1/(du^2);
+thetaw = 6.5656127000235; %1/(dx^2);
+ww = 2872.45555626027; %1/(du^2);
 
 %Xw = 1/(dx^2);
 %Vw = 1/(du^2);
@@ -32,10 +32,10 @@ R = 5;
 %R = 1/(ubar^2);
 
 % Calling CubeSat Function
-[A, B, ~, G] = CubeSat_12T_Test1(Xw,Vw,thetaw,ww,dt,R);
+[A, B, K, G] = CubeSat_12T_Test1(Xw,Vw,thetaw,ww,dt,R);
 %[A, B, K] = CubeSat_12T(Xw,Vw,thetaw,ww,dt,R);
 
-K = readmatrix('G_M_Test1.csv');
+%K = readmatrix('Gain_Matrix.csv');
 
 % Setting a position deviations (in y)
 x0 = zeros(12,1);
@@ -59,6 +59,10 @@ t = 1000;
 
 [xTR,uTR,tTR] = Thruster_Sim(A,B,K,ubar,t,dt,x0); % Current custom thruster code
 
+state_log = xTR;
+t_log = tTR;
+thrust_log = uTR;
+
 [h3,h4] = Control_Plot(xTR,uTR,tTR);
 
 [ISP, Xac, theta_ac] = Thruster_Data(uTR,xTR,dt);
@@ -66,7 +70,9 @@ t = 1000;
 disp(ISP)
 disp(length(uTR)*dt)
 
-writematrix(K,'G_M_T_3D.csv')
+save('sim_3D_Tran_2',"state_log","t_log","thrust_log")
+
+%writematrix(K,'G_M_Test_3D.csv');
 
 %%
 

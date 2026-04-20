@@ -72,11 +72,11 @@ figure()
 
 trisurf(Tau_map_12T,Tau(1,:),Tau(2,:),Tau(3,:),'FaceAlpha',0.4)
 
-%hold on
+hold on
 
-%[Tau_x,Tau_y,Tau_z] = meshgrid(Tau_8T(1,:),Tau_8T(2,:),Tau_8T(3,:));
+[Tau_x,Tau_y,Tau_z] = meshgrid(Tau_8T(1,:),Tau_8T(2,:),Tau_8T(3,:));
 
-%surf(Tau_x,Tau_y,Tau_z)
+s%urf(Tau_x,Tau_y,Tau_8T(3,:))
 
 axis equal
 grid on
@@ -95,7 +95,7 @@ scatter3(Tau(1,:),Tau(2,:),Tau(3,:),10,'blue','filled')
 
 hold on
 
-%scatter3(Tau_8T(1,:),Tau_8T(2,:),Tau_8T(3,:),10,'cyan','filled')
+scatter3(Tau_8T(1,:),Tau_8T(2,:),Tau_8T(3,:),10,'cyan','filled')
 
 axis equal
 grid on
